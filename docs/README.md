@@ -13,6 +13,7 @@
 ## 开发与分发
 
 - [本地开发](deployment/development.md)
+- [应用内更新与发布](deployment/updates.md)
 
 ## 执行
 
@@ -23,4 +24,5 @@
 ## 参考
 
 - [环境变量](reference/env-variables.md)
-
+- [真机验证记录 · 2026-09-01](reference/verification-2026-09-01.md)
+- [菜单栏图标几何](reference/menu-bar-icon.svg)

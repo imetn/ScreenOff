@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 230 230" fill="none">
+  <defs>
+    <clipPath id="screen-clip">
+      <path d="M66.484375 69.3125H163.515625C173.86246 69.3125 182.25 77.70004 182.25 88.046875V143.75C182.25 154.096835 173.86246 162.484375 163.515625 162.484375H66.484375C56.13754 162.484375 47.75 154.096835 47.75 143.75V88.046875C47.75 77.70004 56.13754 69.3125 66.484375 69.3125Z"/>
+    </clipPath>
+    <linearGradient id="off-glass" x1="115" y1="115.898438" x2="182.25" y2="162.484375" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.62"/>
+      <stop offset="0.3" stop-color="#FFFFFF" stop-opacity="0.48"/>
+      <stop offset="0.65" stop-color="#FFFFFF" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.06"/>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#screen-clip)">
+    <path d="M47.75 162.484375L182.25 69.3125H230V230H47.75V162.484375Z" fill="url(#off-glass)"/>
+  </g>
+</svg>

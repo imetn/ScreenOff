@@ -1,26 +1,10 @@
 import Foundation
 import Observation
 
-enum ScreenOffDelay: Int, CaseIterable, Identifiable {
-    case fiveSeconds = 5
-    case tenSeconds = 10
-    case thirtySeconds = 30
-    case oneMinute = 60
-    case fiveMinutes = 300
-
-    var id: Int { rawValue }
-
-    var title: String {
-        switch self {
-        case .fiveSeconds: "5 秒"
-        case .tenSeconds: "10 秒"
-        case .thirtySeconds: "30 秒"
-        case .oneMinute: "1 分钟"
-        case .fiveMinutes: "5 分钟"
-        }
-    }
-}
-
+/// 用户偏好。仅存开关与时长，不保存任何输入、屏幕或会话内容。
+///
+/// `pendingDisplayBrightness` / `pendingKeyboardBrightness` 是崩溃恢复快照：
+/// 进入暗屏会话时写入，退出会话时清空；下次启动若仍有值，说明上次是异常终止，需要还原。
 @MainActor
 @Observable
 final class ScreenOffPreferences {
@@ -28,9 +12,10 @@ final class ScreenOffPreferences {
         static let keepAwake = "keepAwake"
         static let keepAwakeWithLidClosed = "keepAwakeWithLidClosed"
         static let autoScreenOff = "autoScreenOff"
-        static let screenOffDelay = "screenOffDelay"
-        static let turnOffKeyboardBacklight = "turnOffKeyboardBacklight"
-        static let launchAtLogin = "launchAtLogin"
+        static let idleDelay = "idleDelaySeconds"
+        static let autoKeyboardBacklightOff = "autoKeyboardBacklightOff"
+        static let pendingDisplayBrightness = "pendingDisplayBrightness"
+        static let pendingKeyboardBrightness = "pendingKeyboardBrightness"
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -38,18 +23,14 @@ final class ScreenOffPreferences {
     var keepAwake: Bool {
         didSet {
             defaults.set(keepAwake, forKey: Key.keepAwake)
-            if !keepAwake, keepAwakeWithLidClosed {
-                keepAwakeWithLidClosed = false
-            }
+            if !keepAwake, keepAwakeWithLidClosed { keepAwakeWithLidClosed = false }
         }
     }
 
     var keepAwakeWithLidClosed: Bool {
         didSet {
             defaults.set(keepAwakeWithLidClosed, forKey: Key.keepAwakeWithLidClosed)
-            if keepAwakeWithLidClosed, !keepAwake {
-                keepAwake = true
-            }
+            if keepAwakeWithLidClosed, !keepAwake { keepAwake = true }
         }
     }
 
@@ -57,18 +38,22 @@ final class ScreenOffPreferences {
         didSet { defaults.set(autoScreenOff, forKey: Key.autoScreenOff) }
     }
 
-    var screenOffDelay: ScreenOffDelay {
-        didSet { defaults.set(screenOffDelay.rawValue, forKey: Key.screenOffDelay) }
+    var autoKeyboardBacklightOff: Bool {
+        didSet { defaults.set(autoKeyboardBacklightOff, forKey: Key.autoKeyboardBacklightOff) }
     }
 
-    var turnOffKeyboardBacklight: Bool {
-        didSet {
-            defaults.set(turnOffKeyboardBacklight, forKey: Key.turnOffKeyboardBacklight)
-        }
+    /// 空闲多久后触发，单位秒。取值见 `IdleDelay.options`。
+    var idleDelay: Int {
+        didSet { defaults.set(idleDelay, forKey: Key.idleDelay) }
     }
 
-    var launchAtLogin: Bool {
-        didSet { defaults.set(launchAtLogin, forKey: Key.launchAtLogin) }
+    /// 未进行暗屏会话时为 nil。
+    var pendingDisplayBrightness: Float? {
+        didSet { store(pendingDisplayBrightness, forKey: Key.pendingDisplayBrightness) }
+    }
+
+    var pendingKeyboardBrightness: Float? {
+        didSet { store(pendingKeyboardBrightness, forKey: Key.pendingKeyboardBrightness) }
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -77,32 +62,34 @@ final class ScreenOffPreferences {
             Key.keepAwake: false,
             Key.keepAwakeWithLidClosed: false,
             Key.autoScreenOff: false,
-            Key.screenOffDelay: ScreenOffDelay.tenSeconds.rawValue,
-            Key.turnOffKeyboardBacklight: true,
-            Key.launchAtLogin: false,
+            Key.autoKeyboardBacklightOff: false,
+            Key.idleDelay: IdleDelay.defaultSeconds,
         ])
 
         keepAwake = defaults.bool(forKey: Key.keepAwake)
         keepAwakeWithLidClosed = defaults.bool(forKey: Key.keepAwakeWithLidClosed)
         autoScreenOff = defaults.bool(forKey: Key.autoScreenOff)
-        screenOffDelay = ScreenOffDelay(
-            rawValue: defaults.integer(forKey: Key.screenOffDelay)
-        ) ?? .tenSeconds
-        turnOffKeyboardBacklight = defaults.bool(forKey: Key.turnOffKeyboardBacklight)
-        launchAtLogin = defaults.bool(forKey: Key.launchAtLogin)
+        autoKeyboardBacklightOff = defaults.bool(forKey: Key.autoKeyboardBacklightOff)
+        idleDelay = IdleDelay.seconds(at: IdleDelay.index(of: defaults.integer(forKey: Key.idleDelay)))
+        pendingDisplayBrightness = Self.load(defaults, Key.pendingDisplayBrightness)
+        pendingKeyboardBrightness = Self.load(defaults, Key.pendingKeyboardBrightness)
     }
 
-    var configurationSummary: String {
-        if keepAwakeWithLidClosed {
-            return "已配置合盖保持唤醒"
+    /// 键盘背光只跟随关屏，不单独触发空闲计时。
+    var needsIdleTracking: Bool { autoScreenOff }
+
+    private func store(_ value: Float?, forKey key: String) {
+        if let value {
+            defaults.set(Double(value), forKey: key)
+        } else {
+            defaults.removeObject(forKey: key)
         }
-        if keepAwake {
-            return "已配置保持唤醒"
-        }
-        if autoScreenOff {
-            return "已配置自动暗屏"
-        }
-        return "未启用自动控制"
+    }
+
+    private static func load(_ defaults: UserDefaults, _ key: String) -> Float? {
+        guard defaults.object(forKey: key) != nil else { return nil }
+        let value = Float(defaults.double(forKey: key))
+        guard value.isFinite, value >= 0, value <= 1 else { return nil }
+        return value
     }
 }
-

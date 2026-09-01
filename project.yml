@@ -9,25 +9,49 @@ configs:
   Debug: debug
   Release: release
 
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.9.6
+
 targets:
   ScreenOff:
     type: application
     platform: macOS
     sources:
       - path: ScreenOff
+    info:
+      path: ScreenOff/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Screen Off
+        CFBundleIconName: AppIcon
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        LSApplicationCategoryType: public.app-category.utilities
+        LSUIElement: true
+        NSHumanReadableCopyright: "© 2026 Hangzhou FrameFlow Information Technology Services Co., Ltd."
+        SUFeedURL: "$(SCREENOFF_UPDATE_FEED_URL)"
+        SUPublicEDKey: "$(SCREENOFF_UPDATE_PUBLIC_KEY)"
+        SURequireSignedFeed: true
+        SUVerifyUpdateBeforeExtraction: true
+        ScreenOffGitHubURL: "$(SCREENOFF_GITHUB_URL)"
+        ScreenOffIssuesURL: "$(SCREENOFF_ISSUES_URL)"
+    dependencies:
+      - package: Sparkle
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ethan.screenoff
         PRODUCT_NAME: ScreenOff
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MARKETING_VERSION: 0.1.0
         CURRENT_PROJECT_VERSION: 1
         SWIFT_VERSION: 6.0
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Screen Off
-        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
-        INFOPLIST_KEY_LSUIElement: YES
+        SCREENOFF_UPDATE_FEED_URL: "https://github.com/imetn/ScreenOff/releases/latest/download/appcast.xml"
+        SCREENOFF_UPDATE_PUBLIC_KEY: "ay6OMvNqpMRkQauAp40v399T9IR2DWoa2uLnS/naeL8="
+        SCREENOFF_GITHUB_URL: "https://github.com/imetn/ScreenOff"
+        SCREENOFF_ISSUES_URL: "https://github.com/imetn/ScreenOff/issues"
+        DEVELOPMENT_TEAM: PRYY9PKKUP
         ENABLE_HARDENED_RUNTIME: YES
         ENABLE_USER_SCRIPT_SANDBOXING: YES
     scheme:
       gatherCoverageData: false
-

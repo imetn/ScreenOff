@@ -1,0 +1,23 @@
+<svg width="20" height="20" viewBox="0 0 153 153" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g clip-path="url(#glyphClip)">
+    <mask id="slashGap" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="153" height="153">
+      <path d="M153 0H0V153H153V0Z" fill="white"/>
+      <path d="M28.9 124.1L124.1 28.9" stroke="black" stroke-width="31.62" stroke-linecap="round"/>
+    </mask>
+    <g mask="url(#slashGap)">
+      <path d="M117.725 34H35.275C25.182 34 17 42.182 17 52.275V100.725C17 110.818 25.182 119 35.275 119H117.725C127.818 119 136 110.818 136 100.725V52.275C136 42.182 127.818 34 117.725 34Z" stroke="black" stroke-width="11.05"/>
+      <mask id="screenClip" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="17" y="34" width="119" height="85">
+        <path d="M117.725 34H35.275C25.182 34 17 42.182 17 52.275V100.725C17 110.818 25.182 119 35.275 119H117.725C127.818 119 136 110.818 136 100.725V52.275C136 42.182 127.818 34 117.725 34Z" fill="white"/>
+      </mask>
+      <g mask="url(#screenClip)">
+        <path d="M28.9 124.1L124.1 28.9H153V153H28.9V124.1Z" fill="black"/>
+      </g>
+    </g>
+    <path d="M28.9 124.1L124.1 28.9" stroke="black" stroke-width="13.175" stroke-linecap="round"/>
+  </g>
+  <defs>
+    <clipPath id="glyphClip">
+      <rect width="153" height="153" fill="white"/>
+    </clipPath>
+  </defs>
+</svg>
