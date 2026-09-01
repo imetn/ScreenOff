@@ -188,9 +188,6 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
-					4F31C2D94913848769BC3D4F = {
-						DevelopmentTeam = PRYY9PKKUP;
-					};
 				};
 			};
 			buildConfigurationList = 9154FB3C929CCDBF634A167E /* Build configuration list for PBXProject "ScreenOff" */;
@@ -261,7 +258,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = PRYY9PKKUP;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				INFOPLIST_FILE = ScreenOff/Resources/Info.plist;
@@ -406,7 +402,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = PRYY9PKKUP;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				INFOPLIST_FILE = ScreenOff/Resources/Info.plist;

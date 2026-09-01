@@ -50,7 +50,6 @@ targets:
         SCREENOFF_UPDATE_PUBLIC_KEY: "ay6OMvNqpMRkQauAp40v399T9IR2DWoa2uLnS/naeL8="
         SCREENOFF_GITHUB_URL: "https://github.com/imetn/ScreenOff"
         SCREENOFF_ISSUES_URL: "https://github.com/imetn/ScreenOff/issues"
-        DEVELOPMENT_TEAM: PRYY9PKKUP
         ENABLE_HARDENED_RUNTIME: YES
         ENABLE_USER_SCRIPT_SANDBOXING: YES
     scheme:

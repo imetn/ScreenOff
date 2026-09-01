@@ -10,7 +10,7 @@ Screen Off 是一款面向 Apple Silicon MacBook 的轻量 macOS 菜单栏工具
 
 - **保持电脑唤醒**：阻止空闲睡眠，可在 `pmset -g assertions` 中观察。
 - **合盖后保持唤醒**：使用独立断言，系统限定仅在接通电源时生效，断电自动回退。
-- **自动关闭屏幕**：空闲 10 秒至 4 小时后保存原亮度并降至最低，物理输入即刻还原。
+- **自动关闭屏幕**：空闲 1 分钟至 4 小时后保存原亮度并降至最低，物理输入即刻还原。
 - **同时关闭键盘背光**：手动或自动关屏时跟随关闭，并与屏幕一同恢复原值。
 - **立即关闭屏幕**与**亮度滑杆**：菜单栏窗口内直接操作。
 - **登录时启动**：通过 `SMAppService` 注册，无额外 Helper。
@@ -39,10 +39,11 @@ xcodegen generate
 ./script/build_and_run.sh --verify
 ```
 
-重新生成 App 图标（几何取自 Figma 定稿）：
-
-```bash
-xcrun swift script/make_app_icon.swift
-```
+App 主图标为 Icon Composer 文档 `ScreenOff/Resources/AppIcon.icon`，
+用 Icon Composer 打开编辑；菜单栏三态字形为 `Assets.xcassets` 中的模板 SVG。
 
 文档入口见 [docs/README.md](docs/README.md)。
+
+## 许可
+
+以 [MIT 许可](LICENSE) 发布。
