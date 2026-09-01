@@ -20,12 +20,9 @@
   <rect width="560" height="360" fill="url(#background)"/>
   <rect width="560" height="360" fill="url(#glow)"/>
 
-  <text x="280" y="48" text-anchor="middle"
+  <text x="280" y="58" text-anchor="middle"
         font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif"
-        font-size="18" font-weight="600" fill="#17324D">拖入“应用程序”完成安装</text>
-  <text x="280" y="72" text-anchor="middle"
-        font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif"
-        font-size="12" fill="#668199">Screen Off 会常驻在菜单栏</text>
+        font-size="22" font-weight="650" fill="#17324D">Screen Off</text>
 
   <g filter="url(#shadow)">
     <rect x="76" y="102" width="152" height="164" rx="30" fill="#FFFFFF" fill-opacity="0.70"/>
@@ -37,7 +34,4 @@
   <path d="M238 180H314" stroke="url(#arrow)" stroke-width="6" stroke-linecap="round"/>
   <path d="M304 167L318 180L304 193" fill="none" stroke="#2488EC" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
 
-  <text x="280" y="326" text-anchor="middle"
-        font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif"
-        font-size="11" fill="#7890A5">关闭屏幕 · 保持在线</text>
 </svg>

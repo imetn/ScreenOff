@@ -32,7 +32,8 @@ App 同时启用 `SURequireSignedFeed` 与 `SUVerifyUpdateBeforeExtraction`，
 定制拖拽安装 DMG、DMG 独立签名与公证、GitHub Release 发布。
 
 DMG 使用 560 × 360 的 Finder 窗口，包含 Screen Off 与 Applications 两个图标、
-拖拽方向提示和专属背景。背景源文件位于 `script/assets/dmg-background.svg`。
+拖拽方向提示和专属背景。背景只保留产品名与通用图形，不固定中文或英文说明；
+背景源文件位于 `script/assets/dmg-background.svg`。
 
 ## 安全边界
 
