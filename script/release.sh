@@ -11,6 +11,8 @@ APP_NAME="ScreenOff"
 REPOSITORY="imetn/ScreenOff"
 REPOSITORY_URL="https://github.com/$REPOSITORY"
 TEAM_ID="${SCREENOFF_TEAM_ID:-PRYY9PKKUP}"
+NOTARY_PROFILE="${SCREENOFF_NOTARY_PROFILE:-ScreenOff-Notary}"
+SIGNING_IDENTITY="Developer ID Application: Hangzhou FrameFlow Information Technology Services Co., Ltd. ($TEAM_ID)"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT_PATH="$ROOT_DIR/ScreenOff.xcodeproj"
@@ -32,6 +34,18 @@ require_command() {
 require_command xcodegen
 require_command gh
 require_command xmllint
+require_command create-dmg
+
+if ! security find-identity -v -p codesigning | grep -Fq "\"$SIGNING_IDENTITY\""; then
+    echo "未找到公司 Developer ID Application 证书：$SIGNING_IDENTITY" >&2
+    exit 1
+fi
+
+if ! /usr/bin/xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" >/dev/null 2>&1; then
+    echo "未找到可用的公证钥匙串配置：$NOTARY_PROFILE" >&2
+    echo "请先使用 notarytool store-credentials 写入公司公证凭据。" >&2
+    exit 1
+fi
 
 cd "$ROOT_DIR"
 xcodegen generate
@@ -63,6 +77,7 @@ ARCHIVE_PATH="$RELEASE_DIR/$APP_NAME.xcarchive"
 STAGING_DIR="$RELEASE_DIR/staging"
 APP_PATH="$STAGING_DIR/$APP_NAME.app"
 UPDATE_ARCHIVE="$RELEASE_DIR/$APP_NAME.zip"
+DISK_IMAGE="$RELEASE_DIR/$APP_NAME.dmg"
 APPCAST_PATH="$RELEASE_DIR/appcast.xml"
 UPLOAD_OPTIONS="$RELEASE_DIR/UploadOptions.plist"
 NOTARIZED_EXPORT="$RELEASE_DIR/notarized"
@@ -151,6 +166,43 @@ codesign --verify --deep --strict --verbose=2 "$APP_PATH"
 spctl --assess --type execute --verbose=2 "$APP_PATH"
 
 /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$UPDATE_ARCHIVE"
+
+DMG_SOURCE="$RELEASE_DIR/dmg-source"
+DMG_BACKGROUND="$RELEASE_DIR/dmg-background.png"
+mkdir -p "$DMG_SOURCE"
+/usr/bin/ditto "$APP_PATH" "$DMG_SOURCE/$APP_NAME.app"
+/usr/bin/sips \
+    -s format png \
+    "$ROOT_DIR/script/assets/dmg-background.svg" \
+    --out "$DMG_BACKGROUND" >/dev/null
+
+create-dmg \
+    --volname "Screen Off" \
+    --background "$DMG_BACKGROUND" \
+    --window-pos 200 120 \
+    --window-size 560 360 \
+    --icon-size 104 \
+    --text-size 13 \
+    --icon "$APP_NAME.app" 152 184 \
+    --hide-extension "$APP_NAME.app" \
+    --app-drop-link 408 184 \
+    --codesign "$SIGNING_IDENTITY" \
+    --overwrite \
+    "$DISK_IMAGE" \
+    "$DMG_SOURCE"
+
+/usr/bin/hdiutil verify "$DISK_IMAGE"
+codesign --verify --verbose=2 "$DISK_IMAGE"
+
+echo "正在公证并装订 DMG…"
+/usr/bin/xcrun notarytool submit \
+    "$DISK_IMAGE" \
+    --keychain-profile "$NOTARY_PROFILE" \
+    --wait
+/usr/bin/xcrun stapler staple "$DISK_IMAGE"
+/usr/bin/xcrun stapler validate "$DISK_IMAGE"
+spctl --assess --type open --context context:primary-signature --verbose=2 "$DISK_IMAGE"
+
 cp "$RELEASE_NOTES" "$RELEASE_DIR/$APP_NAME.md"
 
 GENERATE_APPCAST="$DERIVED_DATA/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_appcast"
@@ -173,7 +225,7 @@ grep -Fq "sparkle:edSignature=" "$APPCAST_PATH"
 grep -Fq "<!-- sparkle-signatures:" "$APPCAST_PATH"
 grep -Fq "$REPOSITORY_URL/releases/download/$TAG/$APP_NAME.zip" "$APPCAST_PATH"
 
-shasum -a 256 "$UPDATE_ARCHIVE" "$APPCAST_PATH" > "$RELEASE_DIR/SHA256SUMS"
+shasum -a 256 "$DISK_IMAGE" "$UPDATE_ARCHIVE" "$APPCAST_PATH" > "$RELEASE_DIR/SHA256SUMS"
 
 if [[ "$MODE" == "--publish" ]]; then
     if gh release view "$TAG" --repo "$REPOSITORY" >/dev/null 2>&1; then
@@ -189,6 +241,7 @@ if [[ "$MODE" == "--publish" ]]; then
 
     git push origin HEAD:main
     gh release create "$TAG" \
+        "$DISK_IMAGE" \
         "$UPDATE_ARCHIVE" \
         "$APPCAST_PATH" \
         "$RELEASE_DIR/SHA256SUMS" \

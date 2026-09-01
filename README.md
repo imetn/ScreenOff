@@ -28,6 +28,7 @@ Screen Off 是一款面向 Apple Silicon MacBook 的轻量 macOS 菜单栏工具
 
 尚待验证：物理合盖行为、拔电源回退、真实 UU 远程会话、签名构建上的登录启动。
 GitHub 仓库与 Sparkle 签名更新源已配置；正式更新在首个 Developer ID 签名、公证版本发布后开放。
+直接下载安装使用定制 DMG，打开后将 Screen Off 拖入“应用程序”即可。
 
 ## 开发
 

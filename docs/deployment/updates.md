@@ -14,6 +14,8 @@ App 同时启用 `SURequireSignedFeed` 与 `SUVerifyUpdateBeforeExtraction`，
 2. 由 Xcode Direct Distribution 创建或下载公司 `Developer ID Application` 证书。
 3. Sparkle `generate_keys` 生成的私钥保存在登录钥匙串；仓库只保存公钥。
 4. GitHub CLI 登录拥有 `imetn/ScreenOff` 发布权限的账号。
+5. 使用 `notarytool store-credentials` 将公司公证凭据保存为钥匙串配置 `ScreenOff-Notary`。
+6. 安装开源 DMG 构建工具：`brew install create-dmg`。
 
 不得使用个人 Team、`Apple Development`、`Apple Distribution` 或临时签名包发布更新。
 
@@ -26,7 +28,11 @@ App 同时启用 `SURequireSignedFeed` 与 `SUVerifyUpdateBeforeExtraction`，
 5. 从上一正式版本执行一次真实的“检查更新”与安装复验。
 
 发布脚本会依次执行：Xcode Archive、公司 Developer ID 自动签名、上传 Apple 公证、
-导出带 Ticket 的 App、Gatekeeper 验证、ZIP 打包、签名 Appcast 生成与 GitHub Release 发布。
+导出带 Ticket 的 App、Gatekeeper 验证、ZIP 打包、签名 Appcast 生成、
+定制拖拽安装 DMG、DMG 独立签名与公证、GitHub Release 发布。
+
+DMG 使用 560 × 360 的 Finder 窗口，包含 Screen Off 与 Applications 两个图标、
+拖拽方向提示和专属背景。背景源文件位于 `script/assets/dmg-background.svg`。
 
 ## 安全边界
 
@@ -35,3 +41,4 @@ App 同时启用 `SURequireSignedFeed` 与 `SUVerifyUpdateBeforeExtraction`，
 - 不启用系统信息采集，不向 Appcast 附加设备画像。
 - Screen Off 当前不启用 App Sandbox，因此不启用 Sparkle 的沙盒 XPC 配置。
 - 导出后必须校验 `TeamIdentifier=PRYY9PKKUP`，否则发布脚本立即失败。
+- DMG 也必须由同一公司 `Developer ID Application` 签名、单独公证并装订 Ticket。
