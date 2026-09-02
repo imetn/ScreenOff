@@ -232,7 +232,10 @@ grep -Fq "sparkle:edSignature=" "$APPCAST_PATH"
 grep -Fq "<!-- sparkle-signatures:" "$APPCAST_PATH"
 grep -Fq "$REPOSITORY_URL/releases/download/$TAG/$APP_NAME.zip" "$APPCAST_PATH"
 
-shasum -a 256 "$DISK_IMAGE" "$UPDATE_ARCHIVE" "$APPCAST_PATH" > "$RELEASE_DIR/SHA256SUMS"
+(
+    cd "$RELEASE_DIR"
+    shasum -a 256 "$APP_NAME.dmg" "$APP_NAME.zip" "appcast.xml"
+) > "$RELEASE_DIR/SHA256SUMS"
 
 if [[ "$MODE" == "--publish" ]]; then
     if gh release view "$TAG" --repo "$REPOSITORY" >/dev/null 2>&1; then
