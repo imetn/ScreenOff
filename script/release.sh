@@ -79,6 +79,7 @@ APP_PATH="$STAGING_DIR/$APP_NAME.app"
 UPDATE_ARCHIVE="$RELEASE_DIR/$APP_NAME.zip"
 DISK_IMAGE="$RELEASE_DIR/$APP_NAME.dmg"
 APPCAST_PATH="$RELEASE_DIR/appcast.xml"
+APPCAST_INPUT_DIR="$RELEASE_DIR/appcast-input"
 UPLOAD_OPTIONS="$RELEASE_DIR/UploadOptions.plist"
 NOTARIZED_EXPORT="$RELEASE_DIR/notarized"
 RELEASE_NOTES="$ROOT_DIR/docs/releases/$TAG.md"
@@ -205,6 +206,10 @@ spctl --assess --type open --context context:primary-signature --verbose=2 "$DIS
 
 cp "$RELEASE_NOTES" "$RELEASE_DIR/$APP_NAME.md"
 
+mkdir -p "$APPCAST_INPUT_DIR"
+cp "$UPDATE_ARCHIVE" "$APPCAST_INPUT_DIR/$APP_NAME.zip"
+cp "$RELEASE_NOTES" "$APPCAST_INPUT_DIR/$APP_NAME.md"
+
 GENERATE_APPCAST="$DERIVED_DATA/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_appcast"
 if [[ ! -x "$GENERATE_APPCAST" ]]; then
     echo "未找到 Sparkle generate_appcast：$GENERATE_APPCAST" >&2
@@ -218,7 +223,9 @@ fi
     --maximum-deltas 0 \
     --embed-release-notes \
     -o "$APPCAST_PATH" \
-    "$RELEASE_DIR"
+    "$APPCAST_INPUT_DIR"
+
+rm -rf "$APPCAST_INPUT_DIR"
 
 xmllint --noout "$APPCAST_PATH"
 grep -Fq "sparkle:edSignature=" "$APPCAST_PATH"
