@@ -8,9 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		002317259F999FEFE45CE995 /* PhysicalInputMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAE1CC9288E53906BEC8FD3 /* PhysicalInputMonitor.swift */; };
+		0EC453E37044EBE4B861F50E /* IdleDelayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF12F8FD26CB8037E66710F /* IdleDelayTests.swift */; };
+		12BD26EFD0F213E97A8D4850 /* ScreenOffPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247FBD35D3C2EF0980A83EA4 /* ScreenOffPreferences.swift */; };
 		16149C52133D928DBC7A2FB3 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CF7A337C0294F7ECE1CAF6 /* MenuBarView.swift */; };
 		1726F51E67704A385FD402EF /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 82B9B3DE5A06C40DA9FA2716 /* AppIcon.icon */; };
 		23CFD8244C1E53A02AAF17AB /* SettingsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8A51B9601F88736A05E088 /* SettingsCard.swift */; };
+		2F588AA240476164F693A601 /* ScreenOffPreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9572927FE1BE7A3971F0F8 /* ScreenOffPreferencesTests.swift */; };
 		415764B38DB7B46DE9D98E35 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A505CCB8E8066E390AF91561 /* Assets.xcassets */; };
 		6AD25D0E11CA0CDA86BA5F43 /* MenuBarGlyph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FE13B4B3D2FFDAFFDCBEB0E /* MenuBarGlyph.swift */; };
 		743CF09CF072D1A3CD56BBEE /* AppPresentationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE30BA683970B8B26C37FA1A /* AppPresentationController.swift */; };
@@ -27,14 +30,17 @@
 		DEA09577A85A46CE7C4F372B /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A67FE4A95EF34C155FE4456 /* LoginItemService.swift */; };
 		E2C17E44046E61AE5813BD08 /* PowerAssertionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA082031FE0479FD3D7316DB /* PowerAssertionService.swift */; };
 		F3C9FC08F835EAC7276B30E7 /* ScreenOffController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C6DBDFA32E6792FEC56DA2 /* ScreenOffController.swift */; };
+		FCE7675453513200131D539F /* IdleDelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A2C46632CB743D0BE2DA51 /* IdleDelay.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0AF12F8FD26CB8037E66710F /* IdleDelayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleDelayTests.swift; sourceTree = "<group>"; };
 		13987AB1D360E07A34513793 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		16AAB53A9D11C5F26C526126 /* UpdateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
 		247FBD35D3C2EF0980A83EA4 /* ScreenOffPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOffPreferences.swift; sourceTree = "<group>"; };
 		370D164962FF742CDAFEA2F7 /* PowerSourceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerSourceMonitor.swift; sourceTree = "<group>"; };
 		3EAE1CC9288E53906BEC8FD3 /* PhysicalInputMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalInputMonitor.swift; sourceTree = "<group>"; };
+		3F9572927FE1BE7A3971F0F8 /* ScreenOffPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOffPreferencesTests.swift; sourceTree = "<group>"; };
 		4C17336C982BBF6CC27D888F /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		55C6DBDFA32E6792FEC56DA2 /* ScreenOffController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOffController.swift; sourceTree = "<group>"; };
 		5B8A51B9601F88736A05E088 /* SettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCard.swift; sourceTree = "<group>"; };
@@ -48,6 +54,7 @@
 		94BFEAE878E5F767D446D137 /* KeyboardBacklightService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardBacklightService.swift; sourceTree = "<group>"; };
 		A505CCB8E8066E390AF91561 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AB85DA8B182EB057E315F222 /* ScreenOff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScreenOff.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C78C37597D360C52017B246C /* ScreenOffTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScreenOffTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DA082031FE0479FD3D7316DB /* PowerAssertionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerAssertionService.swift; sourceTree = "<group>"; };
 		EB209433AD02F2C8234E66BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		FE30BA683970B8B26C37FA1A /* AppPresentationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPresentationController.swift; sourceTree = "<group>"; };
@@ -69,6 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				CA43BC6EFBA24952AD8ED49B /* ScreenOff */,
+				4A98507DB941EA006A05D01F /* ScreenOffTests */,
 				8B4E87680E2310810030BD31 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -80,6 +88,15 @@
 				5B8A51B9601F88736A05E088 /* SettingsCard.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		4A98507DB941EA006A05D01F /* ScreenOffTests */ = {
+			isa = PBXGroup;
+			children = (
+				0AF12F8FD26CB8037E66710F /* IdleDelayTests.swift */,
+				3F9572927FE1BE7A3971F0F8 /* ScreenOffPreferencesTests.swift */,
+			);
+			path = ScreenOffTests;
 			sourceTree = "<group>";
 		};
 		4E1BD30D313710D225D1D0ED /* Services */ = {
@@ -112,6 +129,7 @@
 			isa = PBXGroup;
 			children = (
 				AB85DA8B182EB057E315F222 /* ScreenOff.app */,
+				C78C37597D360C52017B246C /* ScreenOffTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -179,6 +197,23 @@
 			productReference = AB85DA8B182EB057E315F222 /* ScreenOff.app */;
 			productType = "com.apple.product-type.application";
 		};
+		616E6B373717A3DEEB6D71A3 /* ScreenOffTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AF98FB998F456DCF5D54C1D /* Build configuration list for PBXNativeTarget "ScreenOffTests" */;
+			buildPhases = (
+				F49DD08FA3ADE5EA7219DE4A /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ScreenOffTests;
+			packageProductDependencies = (
+			);
+			productName = ScreenOffTests;
+			productReference = C78C37597D360C52017B246C /* ScreenOffTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -208,6 +243,7 @@
 			projectRoot = "";
 			targets = (
 				4F31C2D94913848769BC3D4F /* ScreenOff */,
+				616E6B373717A3DEEB6D71A3 /* ScreenOffTests */,
 			);
 		};
 /* End PBXProject section */
@@ -249,6 +285,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F49DD08FA3ADE5EA7219DE4A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FCE7675453513200131D539F /* IdleDelay.swift in Sources */,
+				0EC453E37044EBE4B861F50E /* IdleDelayTests.swift in Sources */,
+				12BD26EFD0F213E97A8D4850 /* ScreenOffPreferences.swift in Sources */,
+				2F588AA240476164F693A601 /* ScreenOffPreferencesTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
@@ -272,6 +319,23 @@
 				SCREENOFF_ISSUES_URL = "https://github.com/imetn/ScreenOff/issues";
 				SCREENOFF_UPDATE_FEED_URL = "https://github.com/imetn/ScreenOff/releases/latest/download/appcast.xml";
 				SCREENOFF_UPDATE_PUBLIC_KEY = "ay6OMvNqpMRkQauAp40v399T9IR2DWoa2uLnS/naeL8=";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		1050B6E2A63B32429105FF69 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.ethan.screenoff.tests;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 6.0;
 			};
@@ -396,6 +460,23 @@
 			};
 			name = Release;
 		};
+		BE580B882A768F8607A74600 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.ethan.screenoff.tests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
 		D23DF9BE4D022B5234E188BB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -424,6 +505,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		1AF98FB998F456DCF5D54C1D /* Build configuration list for PBXNativeTarget "ScreenOffTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1050B6E2A63B32429105FF69 /* Debug */,
+				BE580B882A768F8607A74600 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		1C58E5C1B3CC6566DB436220 /* Build configuration list for PBXNativeTarget "ScreenOff" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

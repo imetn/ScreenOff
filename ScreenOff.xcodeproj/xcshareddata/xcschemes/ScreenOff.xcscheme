@@ -39,6 +39,17 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "616E6B373717A3DEEB6D71A3"
+               BuildableName = "ScreenOffTests.xctest"
+               BlueprintName = "ScreenOffTests"
+               ReferencedContainer = "container:ScreenOff.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>

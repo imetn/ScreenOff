@@ -54,3 +54,20 @@ targets:
         ENABLE_USER_SCRIPT_SANDBOXING: YES
     scheme:
       gatherCoverageData: false
+      testTargets:
+        - ScreenOffTests
+
+  # 纯逻辑单元测试：直接编译被测源文件，不以 App 作为 Test Host，
+  # 因此不会启动菜单栏进程、不触发授权弹窗，也能在无真机能力的 CI 上运行。
+  ScreenOffTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: ScreenOffTests
+      - path: ScreenOff/Models/IdleDelay.swift
+      - path: ScreenOff/Models/ScreenOffPreferences.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ethan.screenoff.tests
+        SWIFT_VERSION: 6.0
+        GENERATE_INFOPLIST_FILE: YES
