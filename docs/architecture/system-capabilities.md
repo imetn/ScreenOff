@@ -10,7 +10,7 @@
 | 内建屏幕亮度 | 动态解析 `DisplayServices` | 私有接口、直接分发 | 禁用暗屏功能，不影响唤醒功能 | 已实测 |
 | 键盘背光 | 动态解析 `CoreBrightness` 的 `KeyboardBrightnessClient` | 私有接口、直接分发 | 单独禁用，不影响屏幕控制 | 已实测 |
 | 登录时启动 | `SMAppService.mainApp` | 公共 API、用户批准 | 保持关闭并显示原因 | 待签名构建验证 |
-| 应用内更新 | Sparkle 2 + HTTPS 签名 Appcast + EdDSA | 公司 Developer ID、公证、发布密钥 | 配置或验签失败时拒绝更新 | Feed 与公钥已配置，首个签名 Release 待发布 |
+| 应用内更新 | Sparkle 2 + HTTPS 签名 Appcast + EdDSA | 公司 Developer ID、公证、发布密钥 | 配置或验签失败时拒绝更新 | 0.1.0 → 0.1.1 下载、替换与自动重启已实测 |
 
 ## 关键实测结论
 

@@ -31,9 +31,24 @@ App 同时启用 `SURequireSignedFeed` 与 `SUVerifyUpdateBeforeExtraction`，
 导出带 Ticket 的 App、Gatekeeper 验证、ZIP 打包、签名 Appcast 生成、
 定制拖拽安装 DMG、DMG 独立签名与公证、GitHub Release 发布。
 
+Sparkle 的 Appcast 输入目录只放 ZIP 更新归档；DMG 是首次安装资产，不参与 Appcast 生成，
+避免同一 bundle 版本被识别成两个重复更新。
+
 DMG 使用 560 × 360 的 Finder 窗口，包含 Screen Off 与 Applications 两个图标、
 拖拽方向提示和专属背景。背景只保留产品名与通用图形，不固定中文或英文说明；
 背景源文件位于 `script/assets/dmg-background.svg`。
+
+## 首次发布验收
+
+2026-09-02 已完成 v0.1.0 → v0.1.1 的实际升级：旧版从 GitHub Feed 发现新版，
+Sparkle 下载并替换 `/Applications/ScreenOff.app` 后自动重启。更新后版本为 0.1.1 (2)，
+代码签名哈希与发布包一致，App 与 DMG 均通过 stapler 和 Gatekeeper 验证。
+
+## 卸载
+
+1. 在“通用”中关闭“登录时启动”，再退出 Screen Off。
+2. 将 `/Applications/ScreenOff.app` 移到废纸篓。
+3. 如需同时清除偏好，可执行 `defaults delete com.ethan.screenoff`；正常卸载无需此步骤。
 
 ## 安全边界
 
