@@ -10,15 +10,13 @@ import os
 final class DisplayBrightnessService {
     private typealias GetBrightness = @convention(c) (CGDirectDisplayID, UnsafeMutablePointer<Float>) -> Int32
     private typealias SetBrightness = @convention(c) (CGDirectDisplayID, Float) -> Int32
-    private typealias CanChangeBrightness = @convention(c) (CGDirectDisplayID) -> Bool
 
     private let log = Logger(subsystem: AppLog.subsystem, category: "display")
 
     private let getBrightness: GetBrightness?
     private let setBrightness: SetBrightness?
-    private let canChangeBrightness: CanChangeBrightness?
 
-    /// 能力探测结果：三个符号齐备才认为可用。
+    /// 能力探测结果：读写两个符号齐备才认为可用。
     let isAvailable: Bool
 
     init() {
@@ -33,7 +31,6 @@ final class DisplayBrightnessService {
 
         getBrightness = symbol("DisplayServicesGetBrightness", as: GetBrightness.self)
         setBrightness = symbol("DisplayServicesSetBrightness", as: SetBrightness.self)
-        canChangeBrightness = symbol("DisplayServicesCanChangeBrightness", as: CanChangeBrightness.self)
 
         isAvailable = getBrightness != nil && setBrightness != nil
 
@@ -51,12 +48,6 @@ final class DisplayBrightnessService {
         var displays = [CGDirectDisplayID](repeating: 0, count: Int(count))
         guard CGGetOnlineDisplayList(count, &displays, &count) == .success else { return nil }
         return displays.first { CGDisplayIsBuiltin($0) != 0 }
-    }
-
-    var canControl: Bool {
-        guard isAvailable, let display = builtinDisplay else { return false }
-        guard let canChangeBrightness else { return true }
-        return canChangeBrightness(display)
     }
 
     /// 读取当前亮度，范围 0…1；失败返回 nil。

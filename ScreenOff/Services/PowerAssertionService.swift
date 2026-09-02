@@ -31,10 +31,6 @@ final class PowerAssertionService {
     private let log = Logger(subsystem: AppLog.subsystem, category: "power")
     private var identifiers: [Kind: IOPMAssertionID] = [:]
 
-    var heldKinds: Set<Kind> { Set(identifiers.keys) }
-
-    func isHolding(_ kind: Kind) -> Bool { identifiers[kind] != nil }
-
     /// 幂等：已持有时直接返回 true。
     @discardableResult
     func acquire(_ kind: Kind) -> Bool {
