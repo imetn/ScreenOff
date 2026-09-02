@@ -10,7 +10,7 @@ App 同时启用 `SURequireSignedFeed` 与 `SUVerifyUpdateBeforeExtraction`，
 
 ## 发布前一次性配置
 
-1. 在 Xcode 27 登录公司开发者账号，使用公司团队 `PRYY9PKKUP`。
+1. 在 Xcode（26.6 或更高稳定版）登录公司开发者账号，使用公司团队 `PRYY9PKKUP`。
 2. 由 Xcode Direct Distribution 创建或下载公司 `Developer ID Application` 证书。
 3. Sparkle `generate_keys` 生成的私钥保存在登录钥匙串；仓库只保存公钥。
 4. GitHub CLI 登录拥有 `imetn/ScreenOff` 发布权限的账号。

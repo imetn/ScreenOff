@@ -18,11 +18,11 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT_PATH="$ROOT_DIR/ScreenOff.xcodeproj"
 DERIVED_DATA="$ROOT_DIR/build/ReleaseDerivedData"
 
-if [[ -z "${DEVELOPER_DIR:-}" && -d "/Applications/Xcode-27.0.0-Beta.4.app" ]]; then
-    export DEVELOPER_DIR="/Applications/Xcode-27.0.0-Beta.4.app/Contents/Developer"
-elif [[ -z "${DEVELOPER_DIR:-}" && -d "/Applications/Xcode-26.6.0.app" ]]; then
+# 公开发布固定使用稳定版工具链；确需 beta SDK 时显式设置 DEVELOPER_DIR。
+if [[ -z "${DEVELOPER_DIR:-}" && -d "/Applications/Xcode-26.6.0.app" ]]; then
     export DEVELOPER_DIR="/Applications/Xcode-26.6.0.app/Contents/Developer"
 fi
+echo "使用工具链：${DEVELOPER_DIR:-$(xcode-select -p)}"
 
 require_command() {
     if ! command -v "$1" >/dev/null 2>&1; then

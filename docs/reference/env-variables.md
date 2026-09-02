@@ -4,7 +4,7 @@ Screen Off 运行时不依赖环境变量；更新 Feed、公钥与 GitHub 地�
 
 脚本支持以下可选覆盖：
 
-- `DEVELOPER_DIR`：选择 Xcode 工具链；发布脚本默认优先使用 Xcode 27。
+- `DEVELOPER_DIR`：选择 Xcode 工具链；构建与发布脚本默认使用稳定版 Xcode 26.6，需要 beta SDK 时显式设置。
 - `SCREENOFF_TEAM_ID`：Developer ID 团队，默认固定为公司团队 `PRYY9PKKUP`。
 - `SCREENOFF_NOTARY_PROFILE`：`notarytool` 钥匙串配置名，默认为 `ScreenOff-Notary`。
 
