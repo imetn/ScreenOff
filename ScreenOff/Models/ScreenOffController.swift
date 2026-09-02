@@ -27,6 +27,7 @@ final class ScreenOffController {
     @ObservationIgnored private let log = Logger(subsystem: AppLog.subsystem, category: "controller")
 
     @ObservationIgnored private var tickTask: Task<Void, Never>?
+    @ObservationIgnored private var sleepObservers: [NSObjectProtocol] = []
 
     /// 手动关屏后只忽略一小段固定时间内的输入，且输入不会延长保护期。
     /// 这样既不会被关闭按钮本身立刻唤醒，也不会因持续移动鼠标而永远无法唤醒。
@@ -34,13 +35,18 @@ final class ScreenOffController {
     @ObservationIgnored private var wakeAllowedAfter: ContinuousClock.Instant?
     @ObservationIgnored private let manualWakeGrace: Duration = .milliseconds(300)
 
+    /// 空闲到点但进不了会话（例如合盖后内建屏离线）时的重试间隔，避免 0.5 秒一次的空转。
+    @ObservationIgnored private let failedEntryRetryInterval: TimeInterval = 10
+
     private(set) var screenState: ScreenState = .on
     private(set) var isOnACPower: Bool = true
     private(set) var displayBrightness: Float = 1
     private(set) var launchAtLogin: Bool = false
     private(set) var lastError: String?
     /// 为 false 时无法区分远程注入事件，自动关屏会被远程操作打断。
-    private(set) var isInputMonitoringReliable = true
+    private(set) var isInputMonitoringReliable = false
+    /// 用户已在系统设置中明确拒绝「输入监控」，只能引导其手动开启。
+    private(set) var isInputMonitoringDenied = false
 
     var canControlDisplay: Bool { display.isAvailable }
     var canControlKeyboardBacklight: Bool { keyboard.isAvailable }
@@ -59,7 +65,8 @@ final class ScreenOffController {
         restoreLeftoverStateIfNeeded()
         observePowerSource()
         observeSystemSleep()
-        startInputMonitoring()
+        // 只有已开启自动关屏的用户才在启动时申请授权；其他人首次开启该开关时再申请。
+        syncInputMonitoring(requestAccess: preferences.needsIdleTracking)
         syncAssertions()
         refreshSchedule()
         log.notice("就绪：keepAwake=\(self.preferences.keepAwake) inputReliable=\(self.isInputMonitoringReliable)")
@@ -73,14 +80,28 @@ final class ScreenOffController {
         power.releaseAll()
         powerSource.stop()
         input.stop()
+        let center = NSWorkspace.shared.notificationCenter
+        sleepObservers.forEach { center.removeObserver($0) }
+        sleepObservers = []
     }
 
-    private func startInputMonitoring() {
+    /// 打开或重试 HID 订阅。`requestAccess` 为真且系统尚未询问过时弹出授权；
+    /// 授权状态变化只在这里落到界面状态。
+    private func syncInputMonitoring(requestAccess: Bool) {
+        if requestAccess, input.accessStatus == .unknown {
+            input.requestAccess()
+        }
+        let wasReliable = input.isReliable
         input.start { [weak self] in
             guard let self else { return }
             handlePhysicalInput()
         }
         isInputMonitoringReliable = input.isReliable
+        isInputMonitoringDenied = input.accessStatus == .denied
+        if wasReliable != input.isReliable {
+            log.notice("输入监控路径变化 reliable=\(self.isInputMonitoringReliable)")
+            refreshSchedule()
+        }
     }
 
     // MARK: - 用户意图
@@ -99,6 +120,8 @@ final class ScreenOffController {
         preferences.autoScreenOff = enabled
         // 配置变了就先回到干净状态，下一轮空闲再按新配置重新进入。
         if !enabled, isSessionActive { exitDimSession() }
+        // 首次开启时用户正在本机操作、屏幕点亮，是申请「输入监控」授权的合适时机。
+        if enabled { syncInputMonitoring(requestAccess: true) }
         refreshSchedule()
     }
 
@@ -159,12 +182,21 @@ final class ScreenOffController {
         refreshSchedule()
     }
 
-    /// 打开菜单时刷新一次读数，避免用亮度快捷键改过之后显示不同步。
+    /// 打开菜单时刷新一次读数，避免用亮度快捷键改过之后显示不同步；
+    /// 同时重试 HID 订阅，用户在系统设置里授权后无需重启。
     func refreshReadings() {
         if screenState == .on, let value = display.brightness() { displayBrightness = value }
         isOnACPower = powerSource.isOnACPower
         launchAtLogin = LoginItemService.isEnabled
-        isInputMonitoringReliable = input.isReliable
+        syncInputMonitoring(requestAccess: false)
+    }
+
+    /// 跳到系统设置的「输入监控」页面。
+    func openInputMonitoringSettings() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent") else {
+            return
+        }
+        NSWorkspace.shared.open(url)
     }
 
     // MARK: - 暗屏会话
@@ -283,13 +315,13 @@ final class ScreenOffController {
 
     private func observeSystemSleep() {
         let center = NSWorkspace.shared.notificationCenter
-        center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
+        let willSleep = center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self else { return }
                 if self.isSessionActive { self.exitDimSession() }
             }
         }
-        center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
+        let didWake = center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self else { return }
                 // 睡前的时间戳会让唤醒瞬间就满足空闲条件，必须重置。
@@ -297,14 +329,20 @@ final class ScreenOffController {
                 self.refreshSchedule()
             }
         }
+        sleepObservers = [willSleep, didWake]
     }
 
     // MARK: - 空闲轮询
 
-    /// 事件驱动为主，轮询只负责「空闲到点关屏」与降级路径的兜底。
+    /// 事件驱动为主，轮询只负责「空闲到点关屏」与降级路径的兜底：
+    /// 会话中若 HID 可靠，唤醒完全由回调完成，不建轮询。
+    private var needsTickLoop: Bool {
+        isSessionActive ? !input.isReliable : preferences.needsIdleTracking
+    }
+
     private func refreshSchedule() {
         tickTask?.cancel()
-        guard preferences.needsIdleTracking || isSessionActive else {
+        guard needsTickLoop else {
             tickTask = nil
             return
         }
@@ -319,14 +357,10 @@ final class ScreenOffController {
 
     /// 返回下一次轮询间隔。
     private func tick() -> TimeInterval {
-        let idle = input.idleSeconds
-
         if isSessionActive {
-            // HID 主路径由回调即时恢复；降级路径仍只能用事件源轮询兜底。
-            if input.isReliable {
-                return 5
-            }
-            if let wakeAllowedAfter, clock.now >= wakeAllowedAfter, idle < 0.5 {
+            // 正常情况下 HID 可靠时不会建轮询；这里只服务降级路径。
+            guard !input.isReliable else { return 5 }
+            if let wakeAllowedAfter, clock.now >= wakeAllowedAfter, input.idleSeconds < 0.5 {
                 exitDimSession()
             }
             return 0.5
@@ -334,10 +368,14 @@ final class ScreenOffController {
 
         guard preferences.needsIdleTracking else { return 2 }
 
-        let remaining = TimeInterval(preferences.idleDelay) - idle
+        // 用户在系统设置里授权后，下一轮轮询自动接回 HID 路径。
+        if !input.isReliable { syncInputMonitoring(requestAccess: false) }
+
+        let remaining = TimeInterval(preferences.idleDelay) - input.idleSeconds
         if remaining <= 0 {
             enterDimSession(manual: false)
-            return 0.5
+            // 成功时 refreshSchedule 已重建循环；仍未进入会话说明屏幕当前不可控，退避重试。
+            return isSessionActive ? 0.5 : failedEntryRetryInterval
         }
         return min(max(remaining, 0.5), 5)
     }

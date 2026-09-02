@@ -100,10 +100,18 @@ struct SettingsView: View {
             }
 
             if let note = capabilityNote {
-                Label(note, systemImage: "exclamationmark.triangle")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                HStack(spacing: 8) {
+                    Label(note.message, systemImage: "exclamationmark.triangle")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                    if note.offersInputMonitoringSettings {
+                        Spacer(minLength: 0)
+                        Button("打开系统设置…") { controller.openInputMonitoringSettings() }
+                            .buttonStyle(.link)
+                            .font(.caption)
+                    }
+                }
             }
 
             Spacer(minLength: 0)
@@ -232,12 +240,22 @@ struct SettingsView: View {
         return "\(version) (\(build))"
     }
 
-    private var capabilityNote: String? {
-        if !controller.canControlDisplay { return "无法控制内建屏幕亮度，屏幕关闭功能不可用。" }
+    private struct CapabilityNote {
+        let message: String
+        var offersInputMonitoringSettings = false
+    }
+
+    private var capabilityNote: CapabilityNote? {
+        if !controller.canControlDisplay { return CapabilityNote(message: "无法控制内建屏幕亮度，屏幕关闭功能不可用。") }
         if preferences.needsIdleTracking, !controller.isInputMonitoringReliable {
-            return "请在系统设置的输入监控中允许 Screen Off，否则无法区分物理输入与远程输入。"
+            return CapabilityNote(
+                message: controller.isInputMonitoringDenied
+                    ? "「输入监控」权限已被拒绝，无法区分物理输入与远程输入。"
+                    : "请在系统设置的「输入监控」中允许 Screen Off，否则无法区分远程输入。",
+                offersInputMonitoringSettings: true
+            )
         }
-        if !controller.canControlKeyboardBacklight { return "当前键盘不支持背光调节。" }
+        if !controller.canControlKeyboardBacklight { return CapabilityNote(message: "当前键盘不支持背光调节。") }
         return nil
     }
 }

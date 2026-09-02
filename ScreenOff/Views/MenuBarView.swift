@@ -17,8 +17,8 @@ struct MenuBarView: View {
             Divider().padding(.vertical, 12)
             keepAwakeSection
             autoOffSection.padding(.top, 12)
-            if let message = statusMessage {
-                statusFooter(message)
+            if let status {
+                statusFooter(status)
             }
             Divider().padding(.vertical, 12)
             footer
@@ -125,23 +125,42 @@ struct MenuBarView: View {
 
     // MARK: - 状态与页脚
 
-    private var statusMessage: String? {
-        if let error = controller.lastError { return error }
-        if !controller.canControlDisplay { return "未能解析屏幕亮度接口，自动关闭屏幕不可用" }
+    private struct Status {
+        let message: String
+        /// 为真时附带「前往系统设置」入口。
+        var offersInputMonitoringSettings = false
+    }
+
+    private var status: Status? {
+        if let error = controller.lastError { return Status(message: error) }
+        if !controller.canControlDisplay { return Status(message: "未能解析屏幕亮度接口，自动关闭屏幕不可用") }
         if preferences.needsIdleTracking, !controller.isInputMonitoringReliable {
-            return "未取得输入监控权限，无法区分远程输入，自动关闭可能被远程操作打断"
+            return Status(
+                message: controller.isInputMonitoringDenied
+                    ? "「输入监控」权限已被拒绝，无法区分远程输入，自动关闭可能被远程操作打断"
+                    : "未取得「输入监控」权限，无法区分远程输入，自动关闭可能被远程操作打断",
+                offersInputMonitoringSettings: true
+            )
         }
-        if !controller.canControlKeyboardBacklight { return "当前键盘不支持背光调节" }
+        if !controller.canControlKeyboardBacklight { return Status(message: "当前键盘不支持背光调节") }
         return nil
     }
 
-    private func statusFooter(_ message: String) -> some View {
-        Label(message, systemImage: "exclamationmark.triangle")
-            .font(.system(size: 10))
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 12)
-            .padding(.top, 10)
-            .fixedSize(horizontal: false, vertical: true)
+    private func statusFooter(_ status: Status) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label(status.message, systemImage: "exclamationmark.triangle")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if status.offersInputMonitoringSettings {
+                Button("前往系统设置授权…") { controller.openInputMonitoringSettings() }
+                    .buttonStyle(.link)
+                    .font(.system(size: 10))
+                    .padding(.leading, 20)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, 10)
     }
 
     private var footer: some View {

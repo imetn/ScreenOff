@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 | 阻止空闲睡眠 | IOKit `PreventUserIdleSystemSleep` 断言 | 公共 API | 释放断言并回到系统默认 | 已实测 |
 | 合盖保持唤醒 | IOKit `PreventSystemSleep` 断言 + 供电来源监控 | 公共 API，系统限定仅接通电源时生效 | 断电或关闭开关立即释放断言 | 断言已实测，合盖行为待物理验证 |
-| 识别物理输入 | `IOHIDManager` 订阅内建键盘与触控板 | 需「输入监控」授权 | 降级为 `CGEventSource` 读数，并在界面明示不可靠 | 已实测 |
+| 识别物理输入 | `IOHIDManager` 订阅内建键盘与触控板 | 需「输入监控」授权；首次开启自动关屏时申请，授权后自动接回 | 降级为 `CGEventSource` 读数，界面明示不可靠并提供系统设置入口 | 订阅已实测，授权闭环待签名构建验证 |
 | 内建屏幕亮度 | 动态解析 `DisplayServices` | 私有接口、直接分发 | 禁用暗屏功能，不影响唤醒功能 | 已实测 |
 | 键盘背光 | 动态解析 `CoreBrightness` 的 `KeyboardBrightnessClient` | 私有接口、直接分发 | 单独禁用，不影响屏幕控制 | 已实测 |
 | 登录时启动 | `SMAppService.mainApp` | 公共 API、用户批准 | 保持关闭并显示原因 | 待签名构建验证 |
