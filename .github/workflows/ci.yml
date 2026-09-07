@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# 只做编译与纯逻辑单元测试；屏幕、键盘、电源与合盖能力必须在真实 MacBook 上验证。
+jobs:
+  build-and-test:
+    name: Build & Test (macOS)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: xcodebuild -version
+
+      - name: Build
+        run: |
+          xcodebuild \
+            -project ScreenOff.xcodeproj \
+            -scheme ScreenOff \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Unit tests
+        run: |
+          xcodebuild \
+            -project ScreenOff.xcodeproj \
+            -scheme ScreenOff \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            test

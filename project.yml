@@ -1,0 +1,83 @@
+name: ScreenOff
+
+options:
+  createIntermediateGroups: true
+  deploymentTarget:
+    macOS: "14.0"
+
+configs:
+  Debug: debug
+  Release: release
+
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.9.6
+  KeyboardShortcuts:
+    url: https://github.com/sindresorhus/KeyboardShortcuts
+    exactVersion: 3.0.1
+
+targets:
+  ScreenOff:
+    type: application
+    platform: macOS
+    sources:
+      - path: ScreenOff
+    info:
+      path: ScreenOff/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Screen Off
+        CFBundleIconName: AppIcon
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        LSApplicationCategoryType: public.app-category.utilities
+        LSUIElement: true
+        NSHumanReadableCopyright: "© 2026 Hangzhou FrameFlow Information Technology Services Co., Ltd."
+        SUFeedURL: "$(SCREENOFF_UPDATE_FEED_URL)"
+        SUPublicEDKey: "$(SCREENOFF_UPDATE_PUBLIC_KEY)"
+        SURequireSignedFeed: true
+        SUVerifyUpdateBeforeExtraction: true
+        ScreenOffGitHubURL: "$(SCREENOFF_GITHUB_URL)"
+        ScreenOffIssuesURL: "$(SCREENOFF_ISSUES_URL)"
+    dependencies:
+      - package: Sparkle
+      - package: KeyboardShortcuts
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.frameflowtech.screenoff
+        PRODUCT_NAME: ScreenOff
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        MARKETING_VERSION: 1.0.0
+        CURRENT_PROJECT_VERSION: 4
+        SWIFT_VERSION: 6.0
+        SCREENOFF_UPDATE_FEED_URL: "https://github.com/imetn/ScreenOff/releases/latest/download/appcast.xml"
+        SCREENOFF_UPDATE_PUBLIC_KEY: "ay6OMvNqpMRkQauAp40v399T9IR2DWoa2uLnS/naeL8="
+        SCREENOFF_GITHUB_URL: "https://github.com/imetn/ScreenOff"
+        SCREENOFF_ISSUES_URL: "https://github.com/imetn/ScreenOff/issues"
+        ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_USER_SCRIPT_SANDBOXING: YES
+    scheme:
+      gatherCoverageData: false
+      testTargets:
+        - ScreenOffTests
+
+  # 纯逻辑单元测试：直接编译被测源文件，不以 App 作为 Test Host，
+  # 因此不会启动菜单栏进程、不触发授权弹窗，也能在无真机能力的 CI 上运行。
+  ScreenOffTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: ScreenOffTests
+      - path: ScreenOff/Models/IdleDelay.swift
+      - path: ScreenOff/Models/ScreenOffPreferences.swift
+      - path: ScreenOff/Services/ScreenOffShortcutService.swift
+      - path: ScreenOff/Services/UpdateSource.swift
+      - path: ScreenOff/Services/UpdateController.swift
+    dependencies:
+      - package: KeyboardShortcuts
+      - package: Sparkle
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.frameflowtech.screenoff.tests
+        SWIFT_VERSION: 6.0
+        GENERATE_INFOPLIST_FILE: YES
