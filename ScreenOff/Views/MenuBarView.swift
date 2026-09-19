@@ -241,10 +241,14 @@ struct MenuBarView: View {
             Button {
                 NSApplication.shared.terminate(nil)
             } label: {
-                Text("退出")
-                    .font(.system(size: 13))
-                    .frame(minWidth: 54, minHeight: 30, alignment: .trailing)
-                    .contentShape(Rectangle())
+                // 图标放在文字右侧：与左端的齿轮一起朝外，页脚两端才对称。
+                HStack(spacing: 6) {
+                    Text("退出")
+                    Image(systemName: "power")
+                }
+                .font(.system(size: 13))
+                .frame(minWidth: 54, minHeight: 30, alignment: .trailing)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
