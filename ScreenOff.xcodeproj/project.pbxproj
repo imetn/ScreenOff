@@ -16,6 +16,7 @@
 		16149C52133D928DBC7A2FB3 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CF7A337C0294F7ECE1CAF6 /* MenuBarView.swift */; };
 		1726F51E67704A385FD402EF /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 82B9B3DE5A06C40DA9FA2716 /* AppIcon.icon */; };
 		19DC2773807DB0AE5379840E /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 28D77C11B644D66097459C6A /* Sparkle */; };
+		19EDB6E1466986FB29A41EAB /* com.frameflowtech.screenoff.lidhelper.plist in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4AE69FFE3D733E74DDDDDE55 /* com.frameflowtech.screenoff.lidhelper.plist */; };
 		1C57BEF8F3A3B96C4A2281EA /* LidWakeProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B669DA6F8BCF67C7428E42D /* LidWakeProtocol.swift */; };
 		23CFD8244C1E53A02AAF17AB /* SettingsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8A51B9601F88736A05E088 /* SettingsCard.swift */; };
 		2F588AA240476164F693A601 /* ScreenOffPreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9572927FE1BE7A3971F0F8 /* ScreenOffPreferencesTests.swift */; };
@@ -24,6 +25,7 @@
 		47D7A87D124D5C980F880ABE /* SettingsWindowSizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3C54DD29C5BEA94E1FFAE2 /* SettingsWindowSizing.swift */; };
 		4F4156E1938FE1C0AC6F6F26 /* InputLockService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BA94F1A77D447ABD051773 /* InputLockService.swift */; };
 		5290A72E2228A07A5FAA3BAF /* LidWakeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43572DEF8F4C01AA51E72DB0 /* LidWakeService.swift */; };
+		52C945720B752158DA56674E /* ScreenOffLidHelper in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = 77ACC5499637CD5CFA5B8AE7 /* ScreenOffLidHelper */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6AD25D0E11CA0CDA86BA5F43 /* MenuBarGlyph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FE13B4B3D2FFDAFFDCBEB0E /* MenuBarGlyph.swift */; };
 		743CF09CF072D1A3CD56BBEE /* AppPresentationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE30BA683970B8B26C37FA1A /* AppPresentationController.swift */; };
 		779329A81FEAAC8ED7007A2C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 828EB440D3BF49B51DFB5516 /* KeyboardShortcuts */; };
@@ -70,6 +72,30 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		D9D995AB27DA3BD437F83D8C /* Embed Dependencies */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				52C945720B752158DA56674E /* ScreenOffLidHelper in Embed Dependencies */,
+			);
+			name = "Embed Dependencies";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EA8EDB369B9BF5093E3AF53D /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LaunchDaemons;
+			dstSubfolderSpec = 1;
+			files = (
+				19EDB6E1466986FB29A41EAB /* com.frameflowtech.screenoff.lidhelper.plist in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		011EC6AEB14873E43F29753C /* RemoteMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteMode.swift; sourceTree = "<group>"; };
 		0A3C54DD29C5BEA94E1FFAE2 /* SettingsWindowSizing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowSizing.swift; sourceTree = "<group>"; };
@@ -84,6 +110,7 @@
 		3EAE1CC9288E53906BEC8FD3 /* PhysicalInputMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalInputMonitor.swift; sourceTree = "<group>"; };
 		3F9572927FE1BE7A3971F0F8 /* ScreenOffPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOffPreferencesTests.swift; sourceTree = "<group>"; };
 		43572DEF8F4C01AA51E72DB0 /* LidWakeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LidWakeService.swift; sourceTree = "<group>"; };
+		4AE69FFE3D733E74DDDDDE55 /* com.frameflowtech.screenoff.lidhelper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = com.frameflowtech.screenoff.lidhelper.plist; sourceTree = "<group>"; };
 		4C17336C982BBF6CC27D888F /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		55C6DBDFA32E6792FEC56DA2 /* ScreenOffController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOffController.swift; sourceTree = "<group>"; };
 		5B8A51B9601F88736A05E088 /* SettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCard.swift; sourceTree = "<group>"; };
@@ -206,6 +233,7 @@
 		5598A0E135B8480092763C60 /* ScreenOffLidHelper */ = {
 			isa = PBXGroup;
 			children = (
+				4AE69FFE3D733E74DDDDDE55 /* com.frameflowtech.screenoff.lidhelper.plist */,
 				725B709F07848C90DF65D428 /* LidWakeHelperService.swift */,
 				89AA15A8093FA474F75DC72E /* main.swift */,
 			);
@@ -284,8 +312,9 @@
 			buildPhases = (
 				7DB35ACFB551352282496F21 /* Sources */,
 				37DBC6D23C74E53D0A4BF52C /* Resources */,
+				EA8EDB369B9BF5093E3AF53D /* CopyFiles */,
 				809A31D187930B0116096EAA /* Frameworks */,
-				6F144FB03C3F2D42FBF89EE2 /* 嵌入合盖唤醒守护进程 */,
+				D9D995AB27DA3BD437F83D8C /* Embed Dependencies */,
 			);
 			buildRules = (
 			);
@@ -386,31 +415,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		6F144FB03C3F2D42FBF89EE2 /* 嵌入合盖唤醒守护进程 */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(BUILT_PRODUCTS_DIR)/com.frameflowtech.screenoff.lidhelper",
-				"$(SRCROOT)/ScreenOffLidHelper/com.frameflowtech.screenoff.lidhelper.plist",
-			);
-			name = "嵌入合盖唤醒守护进程";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/MacOS/com.frameflowtech.screenoff.lidhelper",
-				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Library/LaunchDaemons/com.frameflowtech.screenoff.lidhelper.plist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\nCONTENTS=\"${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}\"\n/bin/mkdir -p \"${CONTENTS}/MacOS\" \"${CONTENTS}/Library/LaunchDaemons\"\n# 用 cp 而非 ditto：脚本沙盒只放行已声明的输出路径，ditto 的临时文件会被拒绝。\n/bin/cp -p \"${BUILT_PRODUCTS_DIR}/com.frameflowtech.screenoff.lidhelper\" \\\n  \"${CONTENTS}/MacOS/com.frameflowtech.screenoff.lidhelper\"\n/bin/cp -p \"${SRCROOT}/ScreenOffLidHelper/com.frameflowtech.screenoff.lidhelper.plist\" \\\n  \"${CONTENTS}/Library/LaunchDaemons/com.frameflowtech.screenoff.lidhelper.plist\"\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		054A295399549C9669B7E1EE /* Sources */ = {
