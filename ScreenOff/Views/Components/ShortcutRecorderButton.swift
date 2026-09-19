@@ -5,6 +5,8 @@ import SwiftUI
 /// 真正的按钮式录制入口；仅在用户点击后接收当前窗口的按键，不使用文本输入框。
 struct ShortcutRecorderButton: NSViewRepresentable {
     @Binding var shortcut: KeyboardShortcuts.Shortcut?
+    let actionTitle: String
+    let accessibilityIdentifier: String
     let validate: (KeyboardShortcuts.Shortcut) -> KeyboardShortcuts.ValidationResult
     let onRecordingMessage: (String?) -> Void
 
@@ -13,6 +15,9 @@ struct ShortcutRecorderButton: NSViewRepresentable {
     }
 
     func updateNSView(_ button: RecorderButton, context: Context) {
+        button.actionTitle = actionTitle
+        button.setAccessibilityIdentifier(accessibilityIdentifier)
+        button.setAccessibilityLabel("\(actionTitle)快捷键")
         button.onChange = { shortcut = $0 }
         button.validate = validate
         button.onRecordingMessage = onRecordingMessage
@@ -29,6 +34,7 @@ struct ShortcutRecorderButton: NSViewRepresentable {
     }
 
     final class RecorderButton: NSButton {
+        var actionTitle = "关闭屏幕"
         var onChange: ((KeyboardShortcuts.Shortcut?) -> Void)?
         var validate: ((KeyboardShortcuts.Shortcut) -> KeyboardShortcuts.ValidationResult)?
         var onRecordingMessage: ((String?) -> Void)?
@@ -46,8 +52,6 @@ struct ShortcutRecorderButton: NSViewRepresentable {
             font = .systemFont(ofSize: NSFont.systemFontSize)
             target = self
             action = #selector(toggleRecording)
-            setAccessibilityIdentifier("screenOffShortcutRecorder")
-            setAccessibilityLabel("关闭屏幕快捷键")
             updateAppearance()
         }
 
@@ -153,7 +157,7 @@ struct ShortcutRecorderButton: NSViewRepresentable {
             let recording = eventMonitor != nil
             title = recording ? "按下组合键…" : (shortcut?.description ?? "未设置")
             contentTintColor = recording ? .controlAccentColor : nil
-            toolTip = recording ? "按下组合键保存；按 Esc 或点击其他位置取消。" : "点击设置关闭屏幕快捷键。"
+            toolTip = recording ? "按下组合键保存；按 Esc 或点击其他位置取消。" : "点击设置\(actionTitle)快捷键。"
             setAccessibilityValue(title)
             setAccessibilityHelp(toolTip)
             invalidateIntrinsicContentSize()

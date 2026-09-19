@@ -9,15 +9,19 @@ struct SettingsView: View {
     let presentationController: AppPresentationController
     @State private var maximumContentHeight: CGFloat = .infinity
     @State private var shortcutRecordingMessage: String?
+    @State private var remoteShortcutRecordingMessage: String?
 
     private var preferences: ScreenOffPreferences { controller.preferences }
-    private var minimumContentHeight: CGFloat { min(324, maximumContentHeight) }
+    private var minimumContentHeight: CGFloat { min(332, maximumContentHeight) }
 
     var body: some View {
         WholePointHeightLayout {
             TabView {
                 featureSettings
                     .tabItem { Label("功能", systemImage: "switch.2") }
+
+                remoteSettings
+                    .tabItem { Label("远程模式", systemImage: "desktopcomputer") }
 
                 generalSettings
                     .tabItem { Label("通用", systemImage: "gearshape") }
@@ -26,8 +30,8 @@ struct SettingsView: View {
                     .tabItem { Label("关于", systemImage: "info.circle") }
             }
             .frame(width: 520)
-            // 以最高的功能页（约 322 pt）为统一基准，较短页面共用这个最小高度。
-            .frame(minHeight: minimumContentHeight, maxHeight: maximumContentHeight)
+            // 四页保持相同高度；小屏幕仍允许表单内部滚动。
+            .frame(height: minimumContentHeight)
         }
         .fixedSize(horizontal: false, vertical: true)
         .overlay(alignment: .top) {
@@ -44,35 +48,39 @@ struct SettingsView: View {
 
     private var featureSettings: some View {
         settingsForm {
-            Section("保持唤醒") {
-                Toggle("保持电脑唤醒", isOn: Binding(
-                    get: { preferences.keepAwake },
-                    set: { controller.setKeepAwake($0) }
-                ))
-                Toggle(isOn: Binding(
+            Section {
+                if controller.remoteMode.isActive {
+                    LabeledContent("保持 Mac 唤醒", value: "随远程模式")
+                } else {
+                    Toggle("保持 Mac 唤醒", isOn: Binding(
+                        get: { preferences.keepAwake },
+                        set: { controller.setKeepAwake($0) }
+                    ))
+                }
+                Toggle("合盖后保持唤醒", isOn: Binding(
                     get: { preferences.keepAwakeWithLidClosed },
                     set: { controller.setKeepAwakeWithLidClosed($0) }
-                )) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("合盖后保持唤醒")
-                        Text(controller.isOnACPower ? "仅在接通电源时生效" : "当前使用电池，已暂停")
+                ))
+                .disabled(!controller.lidWake.isSupported || !controller.isOnACPower)
+                .help("写入系统级睡眠设置，让 Mac 合上盖子也不睡眠。需要一次性批准后台守护进程；拔掉电源、退出 App 或 App 异常结束时都会自动恢复。")
+                if let note = lidWakeNote {
+                    HStack(spacing: 8) {
+                        Text(note)
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if controller.lidWake.readiness == .requiresApproval {
+                            Button("前往批准…") { controller.lidWake.openLoginItemsSettings() }
+                                .buttonStyle(.link)
+                                .font(.caption)
+                        }
                     }
                 }
-            }
-
-            Section {
                 Toggle("自动关闭屏幕", isOn: Binding(
                     get: { preferences.autoScreenOff },
                     set: { controller.setAutoScreenOff($0) }
                 ))
                 .disabled(!controller.canControlDisplay)
-                Toggle("同时关闭键盘背光", isOn: Binding(
-                    get: { preferences.autoKeyboardBacklightOff },
-                    set: { controller.setAutoKeyboardBacklightOff($0) }
-                ))
-                .disabled(!controller.canControlKeyboardBacklight)
                 LabeledContent("空闲时间") {
                     HStack(spacing: 10) {
                         Slider(
@@ -93,9 +101,34 @@ struct SettingsView: View {
                             .frame(width: 58, alignment: .trailing)
                     }
                 }
-                .disabled(!preferences.autoScreenOff)
-            } header: {
-                Text("屏幕关闭")
+                .disabled(!preferences.autoScreenOff || !controller.canControlDisplay)
+                Toggle("同时关闭键盘背光", isOn: Binding(
+                    get: { preferences.autoKeyboardBacklightOff },
+                    set: { controller.setAutoKeyboardBacklightOff($0) }
+                ))
+                .disabled(!controller.canControlKeyboardBacklight)
+                Toggle("关闭输入时显示解锁提示", isOn: Binding(
+                    get: { preferences.showsInputLockOverlay },
+                    set: { controller.setShowsInputLockOverlay($0) }
+                ))
+                .help("关闭输入后屏幕会一并熄灭；提示写明按住 Fn + Delete 一秒解锁。关掉提示后解锁方式不变。")
+            }
+
+            Section {
+                LabeledContent("屏幕亮度") {
+                    HStack(spacing: 10) {
+                        Slider(value: Binding(
+                            get: { Double(controller.displayBrightness) },
+                            set: { controller.setDisplayBrightness(Float($0)) }
+                        ), in: 0...1)
+                        .frame(width: 136)
+                        .accessibilityLabel("屏幕亮度")
+                        Button(controller.screenState == .off ? "点亮屏幕" : "关闭屏幕") {
+                            controller.toggleScreen()
+                        }
+                    }
+                }
+                .disabled(!controller.canControlDisplay)
             } footer: {
                 if let note = capabilityNote {
                     VStack(alignment: .leading, spacing: 4) {
@@ -112,70 +145,181 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - 远程模式
+
+    private func remoteBinding<Value>(_ keyPath: WritableKeyPath<RemoteModeConfiguration, Value>) -> Binding<Value> {
+        Binding(get: { preferences.remoteModeConfiguration[keyPath: keyPath] },
+                set: { preferences.remoteModeConfiguration[keyPath: keyPath] = $0 })
+    }
+
+    private var remoteSettings: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                settingsForm {
+                    Section {
+                        Picker("显示缩放", selection: remoteBinding(\.defaultDisplayMode)) {
+                            Text("保持原样").tag(false)
+                            Text("默认").tag(true)
+                        }
+                        .help(controller.defaultDisplayModeDescription)
+
+                        Picker("关闭背光", selection: remoteBinding(\.backlightSetting)) {
+                            ForEach(RemoteModeConfiguration.BacklightSetting.allCases, id: \.self) { setting in
+                                Text(setting.title).tag(setting)
+                                    .disabled(setting != .unchanged && (!controller.canControlDisplay ||
+                                        (setting == .displayAndKeyboard && !controller.canControlKeyboardBacklight)))
+                            }
+                        }
+
+                        Picker("Dock 显示", selection: remoteBinding(\.dockVisibility)) {
+                            Text("保持原样").tag(RemoteModeConfiguration.SwitchSetting.unchanged)
+                            Text("始终显示").tag(RemoteModeConfiguration.SwitchSetting.enabled)
+                                .disabled(!RemoteDesktopService.dockAvailable)
+                            Text("自动隐藏").tag(RemoteModeConfiguration.SwitchSetting.disabled)
+                                .disabled(!RemoteDesktopService.dockAvailable)
+                        }
+
+                        Toggle("调整 Dock 大小", isOn: remoteBinding(\.resizeDock))
+                            .toggleStyle(.switch)
+                            .disabled(!RemoteDesktopService.dockAvailable && !preferences.remoteModeConfiguration.resizeDock)
+
+                        LabeledContent("大小") {
+                            HStack(spacing: 10) {
+                                Slider(value: remoteBinding(\.dockSize), in: 0...1, step: 0.05)
+                                    .labelsHidden()
+                                    .frame(width: 244)
+                                    .accessibilityLabel("远程模式 Dock 大小")
+                                Text(preferences.remoteModeConfiguration.dockSize, format: .percent.precision(.fractionLength(0)))
+                                    .foregroundStyle(.secondary)
+                                    .monospacedDigit().frame(width: 38, alignment: .trailing)
+                            }
+                        }
+                        .disabled(!preferences.remoteModeConfiguration.resizeDock || !RemoteDesktopService.dockAvailable)
+
+                        Picker("台前调度", selection: remoteBinding(\.stageManager)) {
+                            ForEach(RemoteModeConfiguration.SwitchSetting.allCases, id: \.self) { setting in
+                                Text(setting.title).tag(setting)
+                                    .disabled(setting != .unchanged && !RemoteDesktopService.stageManagerAvailable)
+                            }
+                        }
+                    }
+                    .disabled(controller.remoteMode.state != .inactive)
+                }
+                // 六个独立设置项；开关与大小滑块各占一条原生表单行。
+                .frame(height: 270)
+
+                VStack(spacing: 12) {
+                    if let error = controller.remoteMode.error ?? controller.lastError {
+                        Label(error, systemImage: "exclamationmark.triangle")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    RemoteModeButton(controller: controller)
+                }
+                .padding(.horizontal, 56)
+                .padding(.bottom, 20)
+            }
+        }
+    }
+
+    /// 合盖保持唤醒的前置条件说明，条件满足时不占位置。
+    private var lidWakeNote: String? {
+        guard controller.lidWake.isSupported else { return "当前系统不支持写入睡眠设置，合盖仍会睡眠。" }
+        if !controller.isOnACPower { return "电池供电时不可用：合盖不睡会耗尽电池，请接通电源。" }
+        switch controller.lidWake.readiness {
+        case .requiresApproval: return "后台守护进程等待批准，批准后才会生效。"
+        case .notRegistered: return preferences.keepAwakeWithLidClosed ? "后台守护进程尚未安装。" : nil
+        default: return nil
+        }
+    }
+
     // MARK: - 通用
 
     private var generalSettings: some View {
         settingsForm {
-            Section("启动") {
+            Section {
                 Toggle("登录时启动", isOn: Binding(
                     get: { controller.launchAtLogin },
                     set: { controller.setLaunchAtLogin($0) }
                 ))
-            }
-
-            Section("快捷键") {
-                VStack(alignment: .leading, spacing: 6) {
-                    LabeledContent("关闭屏幕") {
-                        HStack(spacing: 6) {
-                            ShortcutRecorderButton(
-                                shortcut: Binding(
-                                    get: { preferences.screenOffShortcut },
-                                    set: { controller.setScreenOffShortcut($0) }
-                                ),
-                                validate: { controller.validateScreenOffShortcut($0) },
-                                onRecordingMessage: { shortcutRecordingMessage = $0 }
-                            )
-                            .fixedSize()
-
-                            if preferences.screenOffShortcut != nil {
-                                Button {
-                                    controller.setScreenOffShortcut(nil)
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                }
-                                .buttonStyle(.plain)
-                                .foregroundStyle(.secondary)
-                                .help("清除快捷键")
-                                .accessibilityLabel("清除关闭屏幕快捷键")
-                            }
-                        }
-                    }
-                    if let shortcutRecordingMessage {
-                        Text(shortcutRecordingMessage)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-            }
-
-            Section("软件更新") {
+                shortcutRow("关闭屏幕", identifier: "screenOffShortcutRecorder", shortcut: Binding(
+                    get: { preferences.screenOffShortcut }, set: { controller.setScreenOffShortcut($0) }
+                ), message: $shortcutRecordingMessage, validate: controller.validateScreenOffShortcut)
+                shortcutRow("远程模式", identifier: "remoteModeShortcutRecorder", shortcut: Binding(
+                    get: { preferences.remoteModeShortcut }, set: { controller.setRemoteModeShortcut($0) }
+                ), message: $remoteShortcutRecordingMessage, validate: controller.validateRemoteModeShortcut)
                 Toggle("自动检查更新", isOn: Binding(
                     get: { updateController.automaticallyChecksForUpdates },
                     set: { updateController.setAutomaticallyChecksForUpdates($0) }
                 ))
                 .disabled(!updateController.isConfigured)
+                Toggle("发送匿名系统信息", isOn: Binding(
+                    get: { updateController.sendsSystemProfile },
+                    set: { updateController.setSendsSystemProfile($0) }
+                ))
+                .disabled(!updateController.isConfigured)
+                .help("随更新检查发送 macOS 版本、机型、CPU、内存与系统语言，用于了解版本分布。不含任何账号、输入、屏幕或远程会话信息，也不生成设备标识。")
+            }
+            Section {
+                LabeledContent("本机输入识别") {
+                    Text(controller.isInputMonitoringReliable ? "已授权" : "未授权")
+                        .foregroundStyle(.secondary)
+                    Button(controller.isInputMonitoringReliable ? "管理…" : "授权…") {
+                        controller.openInputMonitoringSettings()
+                    }
+                }
+                .help("使用系统的输入监控权限区分本机键鼠与远程操作；本机输入可点亮屏幕。不记录输入内容，快捷键不需要此权限。")
+                LabeledContent("关闭输入") {
+                    Text(controller.inputLock.hasAccess ? "已授权" : "未授权")
+                        .foregroundStyle(.secondary)
+                    Button(controller.inputLock.hasAccess ? "管理…" : "授权…") {
+                        controller.inputLock.openAccessibilitySettings()
+                    }
+                }
+                .help("关闭输入需要「辅助功能」权限才能拦截本机键盘与触控板；只吞掉事件，不读取按键内容。")
             }
         }
     }
 
-    /// 两页共用原生表单，统一开关、标题、分隔线与内外留白。
+    private func shortcutRow(
+        _ title: String,
+        identifier: String,
+        shortcut: Binding<KeyboardShortcuts.Shortcut?>,
+        message: Binding<String?>,
+        validate: @escaping (KeyboardShortcuts.Shortcut) -> KeyboardShortcuts.ValidationResult
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            LabeledContent("\(title)快捷键") {
+                HStack(spacing: 6) {
+                    ShortcutRecorderButton(
+                        shortcut: shortcut, actionTitle: title, accessibilityIdentifier: identifier,
+                        validate: validate, onRecordingMessage: { message.wrappedValue = $0 }
+                    ).fixedSize()
+                    if shortcut.wrappedValue != nil {
+                        Button { shortcut.wrappedValue = nil } label: {
+                            Image(systemName: "xmark.circle.fill")
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                        .help("清除快捷键")
+                        .accessibilityLabel("清除\(title)快捷键")
+                    }
+                }
+            }
+            if let message = message.wrappedValue {
+                Text(message).font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    /// 原生表单自带左右内边距，448 pt 滚动区域产生约 408 pt 的实际内容宽度。
     private func settingsForm<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         Form(content: content)
             .formStyle(.grouped)
             // 窄表单不向全宽标题栏延伸底色，保留系统标签的玻璃选中效果。
             .scrollContentBackground(.hidden)
-            .frame(width: 392)
+            .frame(width: 448)
             // 系统滚动口袋仍可能绘制到标题栏；将其裁剪在正文边界内。
             .clipped()
             .frame(maxWidth: .infinity)
@@ -238,8 +382,6 @@ struct SettingsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            Spacer(minLength: 24)
-
             HStack(spacing: 12) {
                 if let githubURL = updateController.githubURL {
                     Link(destination: githubURL) {
@@ -275,6 +417,7 @@ struct SettingsView: View {
                 }
             }
             .frame(maxWidth: .infinity)
+            .padding(.top, 20)
         }
         .frame(width: 392)
         .frame(maxWidth: .infinity)
@@ -304,7 +447,9 @@ struct SettingsView: View {
                 offersInputMonitoringSettings: true
             )
         }
-        if !controller.canControlKeyboardBacklight { return CapabilityNote(message: "当前键盘不支持背光调节。") }
+        if preferences.autoKeyboardBacklightOff, !controller.canControlKeyboardBacklight {
+            return CapabilityNote(message: "当前键盘不支持背光调节。")
+        }
         return nil
     }
 }

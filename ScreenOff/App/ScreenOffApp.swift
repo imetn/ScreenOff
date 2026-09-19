@@ -40,6 +40,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         controller.start()
     }
 
+    private var isPreparingToQuit = false
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard !isPreparingToQuit else { return .terminateLater }
+        isPreparingToQuit = true
+        Task {
+            await controller.prepareToQuit()
+            sender.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         controller.shutdown()
     }

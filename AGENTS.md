@@ -28,15 +28,19 @@
 - App-level state is centralized; user preferences use `UserDefaults`, system capabilities live in separate services.
 - Any change to brightness, power, or lid state must save the original state first and restore it when the feature is turned off, on quit, and on recovery from an abnormal exit.
 - Private frameworks must be resolved dynamically with capability probing and graceful degradation; a missing symbol must never crash the app.
-- Keep-awake-with-lid-closed uses a separate `PreventSystemSleep` assertion, held and released independently of the plain idle assertion, and falls back immediately when unplugged.
+- Keep-awake-with-lid-closed writes the system-level `SleepDisabled` setting through the signed privileged daemon shipped inside the app bundle; `PreventSystemSleep` is documented by Apple as unsupported and must never be used for this. It is offered only on AC power and is released when the power is unplugged, on quit, and whenever the daemon loses its last client.
 - Never store input content, screen content, remote session information, or any credentials.
-- For UI rewrites, re-layouts, new entry points, or visual structure changes: describe the structure in 3–4 bullets and wait for confirmation before writing code.
-- Code changes that affect architecture, features, distribution, permissions, or safety boundaries must update the relevant guide in `Docs/` in the same change.
+- Usage measurement may only use what normal operation already produces — update-check requests and
+  release download counts — plus Sparkle's opt-in anonymous profile. No analytics SDK, no device
+  identifier, no third-party collector, and the privacy section of both READMEs must match whatever
+  is collected.
+- For authorized UI changes with a clear direction, implement and verify the result. Ask only when a material product or interaction decision remains unresolved.
+- Changes to architecture contracts, distribution, permissions, or safety boundaries must update the relevant guide in `Docs/` in the same change.
 - Avoid unnecessary Xcode builds; build after completing a verifiable stage.
 
 ## Workflow
 
-- Before a large change (more than 5 files or spanning multiple system boundaries), list 3 invariants and wait for confirmation.
+- For larger changes, identify affected system boundaries and invariants before implementation. File count alone is not an approval gate.
 - Use `./Script/build_and_run.sh` as the single run entry point.
 - System capabilities must be verified on a real MacBook; compiling is not feature completion.
 - Lid, power, and brightness tests must not leave system state behind; check and restore defaults after verification.

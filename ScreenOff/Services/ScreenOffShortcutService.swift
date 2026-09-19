@@ -66,10 +66,14 @@ final class ScreenOffShortcutService {
     /// 统一验证组合键规则、系统/菜单冲突，以及其他应用的 Carbon 注册占用。
     static func validate(
         _ shortcut: KeyboardShortcuts.Shortcut,
-        replacing current: KeyboardShortcuts.Shortcut?
+        replacing current: KeyboardShortcuts.Shortcut?,
+        excluding other: KeyboardShortcuts.Shortcut? = nil
     ) -> KeyboardShortcuts.ValidationResult {
         guard isSupported(shortcut) else {
             return .disallow(reason: "不支持单个按键，请搭配 ⌘、⌃ 或 ⌥。")
+        }
+        guard shortcut != other else {
+            return .disallow(reason: "这个快捷键已用于另一个操作，请换一组。")
         }
         if let menu = NSApp?.mainMenu, let title = conflictingMenuTitle(for: shortcut, in: menu) {
             return .disallow(reason: "与「\(title)」冲突，请换一组。")

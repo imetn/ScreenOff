@@ -63,6 +63,16 @@ verified first, then the archive's Sparkle EdDSA signature.
 Never publish updates with a personal team, `Apple Development`, `Apple Distribution`, or ad-hoc
 signed packages.
 
+## Remote Mode Acceptance
+
+Dock control uses dynamically resolved private SPI without an additional automation entitlement.
+Before publishing a build containing remote mode, verify entry/exit, missing capability, quit,
+abnormal-restart recovery, the real Stage Manager UI, display mode readback, and independent
+system/display idle assertions. Keep `pmset` settings and unrelated user preferences unchanged.
+Build backups and upgrade-test applications must be compressed or removed after acceptance so
+`/Applications/ScreenOff.app` remains the only discoverable app. See [System Capabilities](system-capabilities.md)
+for unsupported lid behavior and the undocumented Stage Manager compatibility boundary.
+
 ## Every Release
 
 1. Bump `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `project.yml`.
@@ -141,3 +151,42 @@ no fixed Chinese or English copy; the source is `Script/assets/dmg-background.sv
 - The export must verify `TeamIdentifier=PRYY9PKKUP`; otherwise the release script fails immediately.
 - The DMG must be signed by the same company `Developer ID Application` certificate, notarized
   separately, and stapled.
+
+## Usage Metrics
+
+Screen Off bundles no analytics SDK and sends nothing on its own schedule. Everything below is a
+by-product of machinery that already exists, which is why adding it cost no new network request.
+
+**Sources**
+
+- GitHub Releases download counts: `ScreenOff.dmg` is a first install, `ScreenOff.zip` is a Sparkle
+  update, and `appcast.xml` is an update check that reached GitHub. The API reports running totals
+  only, so `Script/usage_report.py` appends a snapshot on every run and reports the delta.
+- The US1 update log. Every running copy probes both origins on each check, so the mirror sees one
+  line per check regardless of which origin Sparkle finally selects. Install
+  `Script/server/screenoff-log-format.conf` into the http block and reload nginx; the locations in
+  `screenoff-updates.conf` already reference the format.
+
+**What the log stores.** `$time_iso8601`, status, request line and user agent — deliberately no client
+address. One check per copy per day means the request count is already the activity signal, so
+storing addresses would add re-identification risk and no information.
+
+**The anonymous profile.** `SUEnableSystemProfiling` makes Sparkle attach macOS version, Mac model,
+CPU, memory and language as query parameters. It is off until the user agrees: Sparkle's standard
+permission prompt lists the exact fields before anything is sent, and Settings → General keeps a
+switch for changing that decision later. Profile coverage is therefore partial by design, and it only
+lands in this log when the mirror wins the origin race — read the distributions as a sample, never as
+a census.
+
+**Reading the report**
+
+```bash
+Script/usage_report.py                  # GitHub only
+Script/usage_report.py --host us1       # also pull and analyse the update log
+```
+
+**Rejected: third-party analytics.** Google Analytics and its peers were considered and turned down.
+They need a persistent client identifier — a device fingerprint — which is exactly what a tool holding
+Accessibility and Input Monitoring permissions must never create. GA also carries live GDPR rulings
+against its cross-border transfers, and this user base is the one most likely to both block it and
+read the source.

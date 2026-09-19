@@ -15,7 +15,9 @@ final class ScreenOffPreferences {
         static let autoScreenOff = "autoScreenOff"
         static let idleDelay = "idleDelaySeconds"
         static let autoKeyboardBacklightOff = "autoKeyboardBacklightOff"
+        static let showsInputLockOverlay = "showsInputLockOverlay"
         static let screenOffShortcut = "screenOffShortcut"
+        static let remoteModeShortcut = "remoteModeShortcut"
         static let pendingDisplayBrightness = "pendingDisplayBrightness"
         static let pendingKeyboardBrightness = "pendingKeyboardBrightness"
         static let migratedLegacyDomain = "migratedLegacyPreferencesDomain"
@@ -30,6 +32,8 @@ final class ScreenOffPreferences {
         }
     }
 
+    /// 合盖保持唤醒。真正生效的是系统级 `SleepDisabled`，这里只记录用户意图；
+    /// 关掉「保持唤醒」时一并关闭，避免出现只在合盖时生效的孤立状态。
     var keepAwakeWithLidClosed: Bool {
         didSet {
             defaults.set(keepAwakeWithLidClosed, forKey: Key.keepAwakeWithLidClosed)
@@ -45,6 +49,21 @@ final class ScreenOffPreferences {
         didSet { defaults.set(autoKeyboardBacklightOff, forKey: Key.autoKeyboardBacklightOff) }
     }
 
+    /// 关闭输入时是否显示解锁提示。默认显示：不显示就只能靠记忆找回 Fn + Delete。
+    var showsInputLockOverlay: Bool {
+        didSet { defaults.set(showsInputLockOverlay, forKey: Key.showsInputLockOverlay) }
+    }
+
+    var remoteModeConfiguration: RemoteModeConfiguration {
+        didSet {
+            if let data = try? JSONEncoder().encode(remoteModeConfiguration.validated) {
+                defaults.set(data, forKey: "remoteModeConfiguration")
+            }
+        }
+    }
+
+    var storage: UserDefaults { defaults }
+
     /// 空闲多久后触发，单位秒。取值见 `IdleDelay.options`。
     var idleDelay: Int {
         didSet { defaults.set(idleDelay, forKey: Key.idleDelay) }
@@ -52,13 +71,11 @@ final class ScreenOffPreferences {
 
     /// 默认不分配全局组合键，避免占用用户已有的快捷键。
     var screenOffShortcut: KeyboardShortcuts.Shortcut? {
-        didSet {
-            if let screenOffShortcut, let data = try? JSONEncoder().encode(screenOffShortcut) {
-                defaults.set(data, forKey: Key.screenOffShortcut)
-            } else {
-                defaults.removeObject(forKey: Key.screenOffShortcut)
-            }
-        }
+        didSet { storeShortcut(screenOffShortcut, forKey: Key.screenOffShortcut) }
+    }
+
+    var remoteModeShortcut: KeyboardShortcuts.Shortcut? {
+        didSet { storeShortcut(remoteModeShortcut, forKey: Key.remoteModeShortcut) }
     }
 
     /// 未进行暗屏会话时为 nil。
@@ -76,11 +93,15 @@ final class ScreenOffPreferences {
             Self.migrateLegacyPreferences(defaults: defaults)
         }
         self.defaults = defaults
+        remoteModeConfiguration = defaults.data(forKey: "remoteModeConfiguration")
+            .flatMap { try? JSONDecoder().decode(RemoteModeConfiguration.self, from: $0) }?.validated
+            ?? RemoteModeConfiguration()
         defaults.register(defaults: [
             Key.keepAwake: false,
             Key.keepAwakeWithLidClosed: false,
             Key.autoScreenOff: false,
             Key.autoKeyboardBacklightOff: false,
+            Key.showsInputLockOverlay: true,
             Key.idleDelay: IdleDelay.defaultSeconds,
         ])
 
@@ -88,8 +109,12 @@ final class ScreenOffPreferences {
         keepAwakeWithLidClosed = defaults.bool(forKey: Key.keepAwakeWithLidClosed)
         autoScreenOff = defaults.bool(forKey: Key.autoScreenOff)
         autoKeyboardBacklightOff = defaults.bool(forKey: Key.autoKeyboardBacklightOff)
+        showsInputLockOverlay = defaults.bool(forKey: Key.showsInputLockOverlay)
         idleDelay = IdleDelay.seconds(at: IdleDelay.index(of: defaults.integer(forKey: Key.idleDelay)))
-        screenOffShortcut = Self.loadShortcut(defaults)
+        screenOffShortcut = Self.loadShortcut(defaults, key: Key.screenOffShortcut)
+        let remoteShortcut = Self.loadShortcut(defaults, key: Key.remoteModeShortcut)
+        // A restored or manually edited preference must never trigger both actions together.
+        remoteModeShortcut = remoteShortcut == screenOffShortcut ? nil : remoteShortcut
         pendingDisplayBrightness = Self.load(defaults, Key.pendingDisplayBrightness)
         pendingKeyboardBrightness = Self.load(defaults, Key.pendingKeyboardBrightness)
     }
@@ -110,7 +135,7 @@ final class ScreenOffPreferences {
         let legacy = defaults.persistentDomain(forName: legacyDomain) ?? [:]
         let keys = [
             Key.keepAwake, Key.keepAwakeWithLidClosed, Key.autoScreenOff,
-            Key.autoKeyboardBacklightOff, Key.idleDelay, Key.screenOffShortcut,
+            Key.autoKeyboardBacklightOff, Key.showsInputLockOverlay, Key.idleDelay, Key.screenOffShortcut,
             Key.pendingDisplayBrightness, Key.pendingKeyboardBrightness,
             "SUEnableAutomaticChecks", "SUAutomaticallyUpdate",
         ]
@@ -122,9 +147,17 @@ final class ScreenOffPreferences {
         defaults.setPersistentDomain(current, forName: currentDomain)
     }
 
-    private static func loadShortcut(_ defaults: UserDefaults) -> KeyboardShortcuts.Shortcut? {
+    private func storeShortcut(_ shortcut: KeyboardShortcuts.Shortcut?, forKey key: String) {
+        if let shortcut, let data = try? JSONEncoder().encode(shortcut) {
+            defaults.set(data, forKey: key)
+        } else {
+            defaults.removeObject(forKey: key)
+        }
+    }
+
+    private static func loadShortcut(_ defaults: UserDefaults, key: String) -> KeyboardShortcuts.Shortcut? {
         guard
-            let data = defaults.data(forKey: Key.screenOffShortcut),
+            let data = defaults.data(forKey: key),
             let shortcut = try? JSONDecoder().decode(KeyboardShortcuts.Shortcut.self, from: data),
             (0...127).contains(shortcut.carbonKeyCode),
             shortcut.carbonModifiers >= 0,
@@ -142,6 +175,7 @@ final class ScreenOffPreferences {
         } else {
             defaults.removeObject(forKey: key)
         }
+        defaults.synchronize()
     }
 
     private static func load(_ defaults: UserDefaults, _ key: String) -> Float? {

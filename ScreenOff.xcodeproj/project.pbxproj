@@ -10,73 +10,109 @@
 		002317259F999FEFE45CE995 /* PhysicalInputMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAE1CC9288E53906BEC8FD3 /* PhysicalInputMonitor.swift */; };
 		0E5DF8F47E9CF8F9A50D30A3 /* ScreenOffShortcutServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA3783566917565597D454D4 /* ScreenOffShortcutServiceTests.swift */; };
 		0EC453E37044EBE4B861F50E /* IdleDelayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF12F8FD26CB8037E66710F /* IdleDelayTests.swift */; };
+		1012443F42760C6B0843456C /* InputLockOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30C50906533F1223345E3CBF /* InputLockOverlay.swift */; };
 		12BD26EFD0F213E97A8D4850 /* ScreenOffPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247FBD35D3C2EF0980A83EA4 /* ScreenOffPreferences.swift */; };
 		1483ECA5CCBCFA916B357D0D /* UpdateSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23AE7EF23F21B0DAFFEC3CB1 /* UpdateSource.swift */; };
 		16149C52133D928DBC7A2FB3 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CF7A337C0294F7ECE1CAF6 /* MenuBarView.swift */; };
 		1726F51E67704A385FD402EF /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 82B9B3DE5A06C40DA9FA2716 /* AppIcon.icon */; };
 		19DC2773807DB0AE5379840E /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 28D77C11B644D66097459C6A /* Sparkle */; };
+		1C57BEF8F3A3B96C4A2281EA /* LidWakeProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B669DA6F8BCF67C7428E42D /* LidWakeProtocol.swift */; };
 		23CFD8244C1E53A02AAF17AB /* SettingsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8A51B9601F88736A05E088 /* SettingsCard.swift */; };
 		2F588AA240476164F693A601 /* ScreenOffPreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9572927FE1BE7A3971F0F8 /* ScreenOffPreferencesTests.swift */; };
+		3A7D720845AA6BF1D6FFD69C /* RemoteModeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861A40D41512131288FA6A59 /* RemoteModeButton.swift */; };
 		415764B38DB7B46DE9D98E35 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A505CCB8E8066E390AF91561 /* Assets.xcassets */; };
 		47D7A87D124D5C980F880ABE /* SettingsWindowSizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3C54DD29C5BEA94E1FFAE2 /* SettingsWindowSizing.swift */; };
+		4F4156E1938FE1C0AC6F6F26 /* InputLockService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BA94F1A77D447ABD051773 /* InputLockService.swift */; };
+		5290A72E2228A07A5FAA3BAF /* LidWakeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43572DEF8F4C01AA51E72DB0 /* LidWakeService.swift */; };
 		6AD25D0E11CA0CDA86BA5F43 /* MenuBarGlyph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FE13B4B3D2FFDAFFDCBEB0E /* MenuBarGlyph.swift */; };
 		743CF09CF072D1A3CD56BBEE /* AppPresentationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE30BA683970B8B26C37FA1A /* AppPresentationController.swift */; };
 		779329A81FEAAC8ED7007A2C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 828EB440D3BF49B51DFB5516 /* KeyboardShortcuts */; };
 		7DBE94E8C6EA2EFB770A60BB /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13987AB1D360E07A34513793 /* SettingsView.swift */; };
 		87D351E8EED50710DF141AED /* IdleDelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A2C46632CB743D0BE2DA51 /* IdleDelay.swift */; };
 		89CEA7BEC0486D54F2E6CC6B /* DisplayBrightnessService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B96AFC3197262790F7B4B45 /* DisplayBrightnessService.swift */; };
+		8BA7565D310F814A66FE3A90 /* RemoteDesktopService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1C2E6B5BEA241CABC9DBB7 /* RemoteDesktopService.swift */; };
 		8E0441996F221602FA0EA4CC /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16AAB53A9D11C5F26C526126 /* UpdateController.swift */; };
 		8F3696C687A1414AD272F767 /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16AAB53A9D11C5F26C526126 /* UpdateController.swift */; };
 		90BCCAB63CAD70EA30F70E45 /* ShortcutRecorderButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FC321CE99469B0011B59DFC /* ShortcutRecorderButton.swift */; };
+		92FEAE751CF3D09E70CD86AC /* SystemPowerSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFDEC1EEA7AB6F76D3924427 /* SystemPowerSetting.swift */; };
 		9BEBD984F817908E77AF3DD2 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 5D3890807F6B834D1A35F086 /* Sparkle */; };
 		9CB197DE58E3F25D45861B6C /* PowerSourceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370D164962FF742CDAFEA2F7 /* PowerSourceMonitor.swift */; };
+		9E1B5F1DA1F2A91FEA050298 /* RemoteMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011EC6AEB14873E43F29753C /* RemoteMode.swift */; };
 		A037E706E8DB14C51B9DF093 /* ThirdPartyNotices.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5EEB6C1DBEB94FCC22BDD337 /* ThirdPartyNotices.txt */; };
+		A05FDB5E9C276D157009E4C1 /* LidWakeProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B669DA6F8BCF67C7428E42D /* LidWakeProtocol.swift */; };
+		A0CDB57BC6D967712C01EB2C /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89AA15A8093FA474F75DC72E /* main.swift */; };
 		A89ECF390953D5687FD068C9 /* ScreenOffApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C525BA5DC4D069B52B4AB89 /* ScreenOffApp.swift */; };
 		AF7945561E7ED0AE1075D66B /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 3DD48F98DAE236200039A3D6 /* KeyboardShortcuts */; };
 		B4108E1B0748966D74D822C4 /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C17336C982BBF6CC27D888F /* AppLog.swift */; };
 		B70F39A7635A0BA621E89D11 /* ScreenOffPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247FBD35D3C2EF0980A83EA4 /* ScreenOffPreferences.swift */; };
 		B7CF922F4C98C95AC6D5BB68 /* ScreenOffShortcutService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C7FF84B05B21CB204A9AF7C /* ScreenOffShortcutService.swift */; };
 		B8269BDCC73F9E79C21E33CD /* KeyboardBacklightService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94BFEAE878E5F767D446D137 /* KeyboardBacklightService.swift */; };
+		D0AF1150053FE23F5C21FBEB /* RemoteMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011EC6AEB14873E43F29753C /* RemoteMode.swift */; };
 		DEA09577A85A46CE7C4F372B /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A67FE4A95EF34C155FE4456 /* LoginItemService.swift */; };
 		E1AB0CFEDB5EA2EA222EE520 /* UpdateSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ABB81A416AE4322ACD8348E /* UpdateSourceTests.swift */; };
 		E2C17E44046E61AE5813BD08 /* PowerAssertionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA082031FE0479FD3D7316DB /* PowerAssertionService.swift */; };
+		EDD908AEC00DE7CBBB688458 /* RemoteModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24FEB271DC5E2A82CC37FC86 /* RemoteModeTests.swift */; };
+		EF3DE3255AC1FE7BE948D94E /* LidWakeHelperService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 725B709F07848C90DF65D428 /* LidWakeHelperService.swift */; };
 		EF8DF1CCD624C2B4C51545B7 /* ScreenOffShortcutService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C7FF84B05B21CB204A9AF7C /* ScreenOffShortcutService.swift */; };
+		F1D1144AE59FAE71250AA774 /* SystemPowerSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFDEC1EEA7AB6F76D3924427 /* SystemPowerSetting.swift */; };
 		F3C9FC08F835EAC7276B30E7 /* ScreenOffController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C6DBDFA32E6792FEC56DA2 /* ScreenOffController.swift */; };
 		FCE7675453513200131D539F /* IdleDelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A2C46632CB743D0BE2DA51 /* IdleDelay.swift */; };
 		FD260B351D31D207A4FEEDB9 /* UpdateSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23AE7EF23F21B0DAFFEC3CB1 /* UpdateSource.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		5789AC70A85FBD004DB52EBF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DF6B19F13A83FE4075BFDDB5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EA1E52CB1AA710876F281746;
+			remoteInfo = ScreenOffLidHelper;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		011EC6AEB14873E43F29753C /* RemoteMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteMode.swift; sourceTree = "<group>"; };
 		0A3C54DD29C5BEA94E1FFAE2 /* SettingsWindowSizing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowSizing.swift; sourceTree = "<group>"; };
 		0AF12F8FD26CB8037E66710F /* IdleDelayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleDelayTests.swift; sourceTree = "<group>"; };
 		13987AB1D360E07A34513793 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		16AAB53A9D11C5F26C526126 /* UpdateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
 		23AE7EF23F21B0DAFFEC3CB1 /* UpdateSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateSource.swift; sourceTree = "<group>"; };
 		247FBD35D3C2EF0980A83EA4 /* ScreenOffPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOffPreferences.swift; sourceTree = "<group>"; };
+		24FEB271DC5E2A82CC37FC86 /* RemoteModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteModeTests.swift; sourceTree = "<group>"; };
+		30C50906533F1223345E3CBF /* InputLockOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputLockOverlay.swift; sourceTree = "<group>"; };
 		370D164962FF742CDAFEA2F7 /* PowerSourceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerSourceMonitor.swift; sourceTree = "<group>"; };
 		3EAE1CC9288E53906BEC8FD3 /* PhysicalInputMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalInputMonitor.swift; sourceTree = "<group>"; };
 		3F9572927FE1BE7A3971F0F8 /* ScreenOffPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOffPreferencesTests.swift; sourceTree = "<group>"; };
+		43572DEF8F4C01AA51E72DB0 /* LidWakeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LidWakeService.swift; sourceTree = "<group>"; };
 		4C17336C982BBF6CC27D888F /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		55C6DBDFA32E6792FEC56DA2 /* ScreenOffController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOffController.swift; sourceTree = "<group>"; };
 		5B8A51B9601F88736A05E088 /* SettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCard.swift; sourceTree = "<group>"; };
 		5EEB6C1DBEB94FCC22BDD337 /* ThirdPartyNotices.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = ThirdPartyNotices.txt; sourceTree = "<group>"; };
 		61A2C46632CB743D0BE2DA51 /* IdleDelay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleDelay.swift; sourceTree = "<group>"; };
 		6A67FE4A95EF34C155FE4456 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
+		6B669DA6F8BCF67C7428E42D /* LidWakeProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LidWakeProtocol.swift; sourceTree = "<group>"; };
 		6C525BA5DC4D069B52B4AB89 /* ScreenOffApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOffApp.swift; sourceTree = "<group>"; };
+		725B709F07848C90DF65D428 /* LidWakeHelperService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LidWakeHelperService.swift; sourceTree = "<group>"; };
+		77ACC5499637CD5CFA5B8AE7 /* ScreenOffLidHelper */ = {isa = PBXFileReference; includeInIndex = 0; path = ScreenOffLidHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		77CF7A337C0294F7ECE1CAF6 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		7B96AFC3197262790F7B4B45 /* DisplayBrightnessService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayBrightnessService.swift; sourceTree = "<group>"; };
 		7FC321CE99469B0011B59DFC /* ShortcutRecorderButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutRecorderButton.swift; sourceTree = "<group>"; };
 		82B9B3DE5A06C40DA9FA2716 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		861A40D41512131288FA6A59 /* RemoteModeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteModeButton.swift; sourceTree = "<group>"; };
+		89AA15A8093FA474F75DC72E /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		8FE13B4B3D2FFDAFFDCBEB0E /* MenuBarGlyph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarGlyph.swift; sourceTree = "<group>"; };
 		94BFEAE878E5F767D446D137 /* KeyboardBacklightService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardBacklightService.swift; sourceTree = "<group>"; };
 		9ABB81A416AE4322ACD8348E /* UpdateSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateSourceTests.swift; sourceTree = "<group>"; };
 		9C7FF84B05B21CB204A9AF7C /* ScreenOffShortcutService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOffShortcutService.swift; sourceTree = "<group>"; };
 		A505CCB8E8066E390AF91561 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AB1C2E6B5BEA241CABC9DBB7 /* RemoteDesktopService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteDesktopService.swift; sourceTree = "<group>"; };
 		AB85DA8B182EB057E315F222 /* ScreenOff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScreenOff.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C78C37597D360C52017B246C /* ScreenOffTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScreenOffTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DA082031FE0479FD3D7316DB /* PowerAssertionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerAssertionService.swift; sourceTree = "<group>"; };
 		DA3783566917565597D454D4 /* ScreenOffShortcutServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOffShortcutServiceTests.swift; sourceTree = "<group>"; };
+		DFDEC1EEA7AB6F76D3924427 /* SystemPowerSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemPowerSetting.swift; sourceTree = "<group>"; };
 		EB209433AD02F2C8234E66BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F3BA94F1A77D447ABD051773 /* InputLockService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputLockService.swift; sourceTree = "<group>"; };
 		FE30BA683970B8B26C37FA1A /* AppPresentationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPresentationController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -106,15 +142,27 @@
 			isa = PBXGroup;
 			children = (
 				CA43BC6EFBA24952AD8ED49B /* ScreenOff */,
+				5598A0E135B8480092763C60 /* ScreenOffLidHelper */,
 				4A98507DB941EA006A05D01F /* ScreenOffTests */,
+				32D7C5FB4100CE63FA6D82B1 /* Shared */,
 				8B4E87680E2310810030BD31 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		32D7C5FB4100CE63FA6D82B1 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				6B669DA6F8BCF67C7428E42D /* LidWakeProtocol.swift */,
+				DFDEC1EEA7AB6F76D3924427 /* SystemPowerSetting.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		48CFE6735C90EDB77694C0D0 /* Components */ = {
 			isa = PBXGroup;
 			children = (
 				8FE13B4B3D2FFDAFFDCBEB0E /* MenuBarGlyph.swift */,
+				861A40D41512131288FA6A59 /* RemoteModeButton.swift */,
 				5B8A51B9601F88736A05E088 /* SettingsCard.swift */,
 				0A3C54DD29C5BEA94E1FFAE2 /* SettingsWindowSizing.swift */,
 				7FC321CE99469B0011B59DFC /* ShortcutRecorderButton.swift */,
@@ -126,6 +174,7 @@
 			isa = PBXGroup;
 			children = (
 				0AF12F8FD26CB8037E66710F /* IdleDelayTests.swift */,
+				24FEB271DC5E2A82CC37FC86 /* RemoteModeTests.swift */,
 				3F9572927FE1BE7A3971F0F8 /* ScreenOffPreferencesTests.swift */,
 				DA3783566917565597D454D4 /* ScreenOffShortcutServiceTests.swift */,
 				9ABB81A416AE4322ACD8348E /* UpdateSourceTests.swift */,
@@ -139,11 +188,14 @@
 				4C17336C982BBF6CC27D888F /* AppLog.swift */,
 				FE30BA683970B8B26C37FA1A /* AppPresentationController.swift */,
 				7B96AFC3197262790F7B4B45 /* DisplayBrightnessService.swift */,
+				F3BA94F1A77D447ABD051773 /* InputLockService.swift */,
 				94BFEAE878E5F767D446D137 /* KeyboardBacklightService.swift */,
+				43572DEF8F4C01AA51E72DB0 /* LidWakeService.swift */,
 				6A67FE4A95EF34C155FE4456 /* LoginItemService.swift */,
 				3EAE1CC9288E53906BEC8FD3 /* PhysicalInputMonitor.swift */,
 				DA082031FE0479FD3D7316DB /* PowerAssertionService.swift */,
 				370D164962FF742CDAFEA2F7 /* PowerSourceMonitor.swift */,
+				AB1C2E6B5BEA241CABC9DBB7 /* RemoteDesktopService.swift */,
 				9C7FF84B05B21CB204A9AF7C /* ScreenOffShortcutService.swift */,
 				16AAB53A9D11C5F26C526126 /* UpdateController.swift */,
 				23AE7EF23F21B0DAFFEC3CB1 /* UpdateSource.swift */,
@@ -151,10 +203,20 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
+		5598A0E135B8480092763C60 /* ScreenOffLidHelper */ = {
+			isa = PBXGroup;
+			children = (
+				725B709F07848C90DF65D428 /* LidWakeHelperService.swift */,
+				89AA15A8093FA474F75DC72E /* main.swift */,
+			);
+			path = ScreenOffLidHelper;
+			sourceTree = "<group>";
+		};
 		567ACC2A6097A1A619080853 /* Models */ = {
 			isa = PBXGroup;
 			children = (
 				61A2C46632CB743D0BE2DA51 /* IdleDelay.swift */,
+				011EC6AEB14873E43F29753C /* RemoteMode.swift */,
 				55C6DBDFA32E6792FEC56DA2 /* ScreenOffController.swift */,
 				247FBD35D3C2EF0980A83EA4 /* ScreenOffPreferences.swift */,
 			);
@@ -165,6 +227,7 @@
 			isa = PBXGroup;
 			children = (
 				AB85DA8B182EB057E315F222 /* ScreenOff.app */,
+				77ACC5499637CD5CFA5B8AE7 /* ScreenOffLidHelper */,
 				C78C37597D360C52017B246C /* ScreenOffTests.xctest */,
 			);
 			name = Products;
@@ -193,6 +256,7 @@
 		CBD97CAE265F595F5BB6B53D /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				30C50906533F1223345E3CBF /* InputLockOverlay.swift */,
 				77CF7A337C0294F7ECE1CAF6 /* MenuBarView.swift */,
 				13987AB1D360E07A34513793 /* SettingsView.swift */,
 				48CFE6735C90EDB77694C0D0 /* Components */,
@@ -221,10 +285,12 @@
 				7DB35ACFB551352282496F21 /* Sources */,
 				37DBC6D23C74E53D0A4BF52C /* Resources */,
 				809A31D187930B0116096EAA /* Frameworks */,
+				6F144FB03C3F2D42FBF89EE2 /* 嵌入合盖唤醒守护进程 */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				59610E876EE3E79C164F927D /* PBXTargetDependency */,
 			);
 			name = ScreenOff;
 			packageProductDependencies = (
@@ -254,6 +320,23 @@
 			productName = ScreenOffTests;
 			productReference = C78C37597D360C52017B246C /* ScreenOffTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		EA1E52CB1AA710876F281746 /* ScreenOffLidHelper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A5BE349ED5E5AE43A632974E /* Build configuration list for PBXNativeTarget "ScreenOffLidHelper" */;
+			buildPhases = (
+				054A295399549C9669B7E1EE /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ScreenOffLidHelper;
+			packageProductDependencies = (
+			);
+			productName = ScreenOffLidHelper;
+			productReference = 77ACC5499637CD5CFA5B8AE7 /* ScreenOffLidHelper */;
+			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
 
@@ -285,6 +368,7 @@
 			projectRoot = "";
 			targets = (
 				4F31C2D94913848769BC3D4F /* ScreenOff */,
+				EA1E52CB1AA710876F281746 /* ScreenOffLidHelper */,
 				616E6B373717A3DEEB6D71A3 /* ScreenOffTests */,
 			);
 		};
@@ -303,7 +387,43 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		6F144FB03C3F2D42FBF89EE2 /* 嵌入合盖唤醒守护进程 */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/com.frameflowtech.screenoff.lidhelper",
+				"$(SRCROOT)/ScreenOffLidHelper/com.frameflowtech.screenoff.lidhelper.plist",
+			);
+			name = "嵌入合盖唤醒守护进程";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/MacOS/com.frameflowtech.screenoff.lidhelper",
+				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Library/LaunchDaemons/com.frameflowtech.screenoff.lidhelper.plist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\nCONTENTS=\"${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}\"\n/bin/mkdir -p \"${CONTENTS}/MacOS\" \"${CONTENTS}/Library/LaunchDaemons\"\n# 用 cp 而非 ditto：脚本沙盒只放行已声明的输出路径，ditto 的临时文件会被拒绝。\n/bin/cp -p \"${BUILT_PRODUCTS_DIR}/com.frameflowtech.screenoff.lidhelper\" \\\n  \"${CONTENTS}/MacOS/com.frameflowtech.screenoff.lidhelper\"\n/bin/cp -p \"${SRCROOT}/ScreenOffLidHelper/com.frameflowtech.screenoff.lidhelper.plist\" \\\n  \"${CONTENTS}/Library/LaunchDaemons/com.frameflowtech.screenoff.lidhelper.plist\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
+		054A295399549C9669B7E1EE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EF3DE3255AC1FE7BE948D94E /* LidWakeHelperService.swift in Sources */,
+				1C57BEF8F3A3B96C4A2281EA /* LidWakeProtocol.swift in Sources */,
+				92FEAE751CF3D09E70CD86AC /* SystemPowerSetting.swift in Sources */,
+				A0CDB57BC6D967712C01EB2C /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7DB35ACFB551352282496F21 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -312,13 +432,20 @@
 				743CF09CF072D1A3CD56BBEE /* AppPresentationController.swift in Sources */,
 				89CEA7BEC0486D54F2E6CC6B /* DisplayBrightnessService.swift in Sources */,
 				87D351E8EED50710DF141AED /* IdleDelay.swift in Sources */,
+				1012443F42760C6B0843456C /* InputLockOverlay.swift in Sources */,
+				4F4156E1938FE1C0AC6F6F26 /* InputLockService.swift in Sources */,
 				B8269BDCC73F9E79C21E33CD /* KeyboardBacklightService.swift in Sources */,
+				A05FDB5E9C276D157009E4C1 /* LidWakeProtocol.swift in Sources */,
+				5290A72E2228A07A5FAA3BAF /* LidWakeService.swift in Sources */,
 				DEA09577A85A46CE7C4F372B /* LoginItemService.swift in Sources */,
 				6AD25D0E11CA0CDA86BA5F43 /* MenuBarGlyph.swift in Sources */,
 				16149C52133D928DBC7A2FB3 /* MenuBarView.swift in Sources */,
 				002317259F999FEFE45CE995 /* PhysicalInputMonitor.swift in Sources */,
 				E2C17E44046E61AE5813BD08 /* PowerAssertionService.swift in Sources */,
 				9CB197DE58E3F25D45861B6C /* PowerSourceMonitor.swift in Sources */,
+				8BA7565D310F814A66FE3A90 /* RemoteDesktopService.swift in Sources */,
+				9E1B5F1DA1F2A91FEA050298 /* RemoteMode.swift in Sources */,
+				3A7D720845AA6BF1D6FFD69C /* RemoteModeButton.swift in Sources */,
 				A89ECF390953D5687FD068C9 /* ScreenOffApp.swift in Sources */,
 				F3C9FC08F835EAC7276B30E7 /* ScreenOffController.swift in Sources */,
 				B70F39A7635A0BA621E89D11 /* ScreenOffPreferences.swift in Sources */,
@@ -327,6 +454,7 @@
 				7DBE94E8C6EA2EFB770A60BB /* SettingsView.swift in Sources */,
 				47D7A87D124D5C980F880ABE /* SettingsWindowSizing.swift in Sources */,
 				90BCCAB63CAD70EA30F70E45 /* ShortcutRecorderButton.swift in Sources */,
+				F1D1144AE59FAE71250AA774 /* SystemPowerSetting.swift in Sources */,
 				8E0441996F221602FA0EA4CC /* UpdateController.swift in Sources */,
 				FD260B351D31D207A4FEEDB9 /* UpdateSource.swift in Sources */,
 			);
@@ -338,6 +466,8 @@
 			files = (
 				FCE7675453513200131D539F /* IdleDelay.swift in Sources */,
 				0EC453E37044EBE4B861F50E /* IdleDelayTests.swift in Sources */,
+				D0AF1150053FE23F5C21FBEB /* RemoteMode.swift in Sources */,
+				EDD908AEC00DE7CBBB688458 /* RemoteModeTests.swift in Sources */,
 				12BD26EFD0F213E97A8D4850 /* ScreenOffPreferences.swift in Sources */,
 				2F588AA240476164F693A601 /* ScreenOffPreferencesTests.swift in Sources */,
 				B7CF922F4C98C95AC6D5BB68 /* ScreenOffShortcutService.swift in Sources */,
@@ -350,7 +480,36 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		59610E876EE3E79C164F927D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EA1E52CB1AA710876F281746 /* ScreenOffLidHelper */;
+			targetProxy = 5789AC70A85FBD004DB52EBF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		05D0DDB6840D7B94F7E5241D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				CURRENT_PROJECT_VERSION = 4;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = ScreenOffLidHelper/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.frameflowtech.screenoff.lidhelper;
+				PRODUCT_NAME = com.frameflowtech.screenoff.lidhelper;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
 		0DBB791AAE62DC9E19A4AC4D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -455,6 +614,27 @@
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
+		};
+		79CD227AA94E01F354E1B5CF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				CURRENT_PROJECT_VERSION = 4;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = ScreenOffLidHelper/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.frameflowtech.screenoff.lidhelper;
+				PRODUCT_NAME = com.frameflowtech.screenoff.lidhelper;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
 		};
 		A6A4D80BCA1602A096D180D2 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -580,6 +760,15 @@
 			buildConfigurations = (
 				629CE73C5E6B380A3DD3A518 /* Debug */,
 				A6A4D80BCA1602A096D180D2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A5BE349ED5E5AE43A632974E /* Build configuration list for PBXNativeTarget "ScreenOffLidHelper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				05D0DDB6840D7B94F7E5241D /* Debug */,
+				79CD227AA94E01F354E1B5CF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

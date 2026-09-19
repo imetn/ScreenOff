@@ -19,6 +19,13 @@ final class ScreenOffController {
     }
 
     let preferences: ScreenOffPreferences
+    let remoteMode: RemoteModeSession
+    let inputLock = InputLockService()
+    let lidWake = LidWakeService()
+    private(set) var defaultDisplayModeDescription = RemoteDesktopService.defaultDisplayDescription()
+    @ObservationIgnored private var remoteTask: Task<Void, Never>?
+    @ObservationIgnored private var remoteOwnsDimSession = false
+    @ObservationIgnored private var shuttingDown = false
 
     @ObservationIgnored private let power = PowerAssertionService()
     @ObservationIgnored private let display = DisplayBrightnessService()
@@ -26,10 +33,13 @@ final class ScreenOffController {
     @ObservationIgnored private let powerSource = PowerSourceMonitor()
     @ObservationIgnored private let input = PhysicalInputMonitor()
     @ObservationIgnored private let screenOffShortcut = ScreenOffShortcutService()
+    @ObservationIgnored private let remoteModeShortcut = ScreenOffShortcutService()
+    @ObservationIgnored private let inputLockOverlay = InputLockOverlayController()
     @ObservationIgnored private let log = Logger(subsystem: AppLog.subsystem, category: "controller")
 
     @ObservationIgnored private var tickTask: Task<Void, Never>?
     @ObservationIgnored private var sleepObservers: [NSObjectProtocol] = []
+    @ObservationIgnored private var screenParametersObserver: NSObjectProtocol?
 
     /// 手动关屏后只忽略一小段固定时间内的输入，且输入不会延长保护期。
     /// 这样既不会被关闭按钮本身立刻唤醒，也不会因持续移动鼠标而永远无法唤醒。
@@ -64,6 +74,7 @@ final class ScreenOffController {
 
     init(preferences: ScreenOffPreferences) {
         self.preferences = preferences
+        remoteMode = RemoteModeSession(environment: RemoteDesktopService(), defaults: preferences.storage)
         isOnACPower = PowerSourceMonitor.readIsOnACPower()
         launchAtLogin = LoginItemService.isEnabled
         displayBrightness = display.brightness() ?? 1
@@ -77,19 +88,28 @@ final class ScreenOffController {
     func start() {
         log.notice("启动：display=\(self.display.isAvailable) keyboard=\(self.keyboard.isAvailable)")
         restoreLeftoverStateIfNeeded()
+        if remoteMode.needsRecovery { restoreRemoteMode() }
+        observeInputLock()
+        reconcileLidWake()
         observePowerSource()
         observeSystemSleep()
         // 只有已开启自动关屏的用户才在启动时申请授权；其他人首次开启该开关时再申请。
         syncInputMonitoring(requestAccess: preferences.needsIdleTracking)
         syncAssertions()
         syncScreenOffShortcut()
+        syncRemoteModeShortcut()
         refreshSchedule()
         log.notice("就绪：keepAwake=\(self.preferences.keepAwake) inputReliable=\(self.isInputMonitoringReliable)")
     }
 
     /// 正常退出路径：先还原屏幕与键盘，再释放全部断言。
     func shutdown() {
+        shuttingDown = true
+        lidWake.shutdown()
+        inputLock.unlock(showRestoredHint: false)
+        inputLockOverlay.dismissNow()
         screenOffShortcut.stop()
+        remoteModeShortcut.stop()
         tickTask?.cancel()
         tickTask = nil
         if isSessionActive { exitDimSession() }
@@ -99,6 +119,21 @@ final class ScreenOffController {
         let center = NSWorkspace.shared.notificationCenter
         sleepObservers.forEach { center.removeObserver($0) }
         sleepObservers = []
+        if let screenParametersObserver { NotificationCenter.default.removeObserver(screenParametersObserver) }
+        screenParametersObserver = nil
+    }
+
+    /// 启动对账：系统里残留的 `SleepDisabled` 必须与用户偏好一致，
+    /// 否则上一次异常退出会留下一台合盖永不睡眠的 Mac。
+    private func reconcileLidWake() {
+        lidWake.refresh()
+        let wanted = preferences.keepAwakeWithLidClosed && isOnACPower && preferences.keepAwake
+        guard wanted != lidWake.isSleepDisabled else { return }
+        if wanted, lidWake.readiness != .ready { 
+            preferences.keepAwakeWithLidClosed = false
+            return
+        }
+        Task { await applyLidWake(wanted) }
     }
 
     /// 打开或重试 HID 订阅。`requestAccess` 为真且系统尚未询问过时弹出授权；
@@ -124,12 +159,101 @@ final class ScreenOffController {
 
     func setKeepAwake(_ enabled: Bool) {
         preferences.keepAwake = enabled
+        // 关掉保持唤醒就不该留下合盖不睡的系统设置。
+        if !enabled { Task { await applyLidWake(false) } }
         syncAssertions()
     }
 
+    /// 合盖保持唤醒：写的是系统级 `SleepDisabled`，只在接通电源时允许开启。
     func setKeepAwakeWithLidClosed(_ enabled: Bool) {
-        preferences.keepAwakeWithLidClosed = enabled
-        syncAssertions()
+        guard !enabled || isOnACPower else {
+            lastError = "电池供电时不能合盖保持唤醒，请先接通电源"
+            return
+        }
+        if enabled, lidWake.readiness == .notRegistered, !lidWake.registerHelper() {
+            lastError = lidWake.lastError
+            return
+        }
+        Task { await applyLidWake(enabled) }
+    }
+
+    /// 统一的写入口：成功才落偏好，失败把系统真实状态回写到界面。
+    private func applyLidWake(_ enabled: Bool) async {
+        let succeeded = await lidWake.setEnabled(enabled)
+        if succeeded {
+            preferences.keepAwakeWithLidClosed = enabled
+            if lastError == lidWake.lastError { lastError = nil }
+        } else {
+            preferences.keepAwakeWithLidClosed = lidWake.isSleepDisabled
+            if let message = lidWake.lastError { lastError = message }
+        }
+    }
+
+    /// Serializes entry/exit; a second click cannot overwrite the original settings snapshot.
+    func toggleRemoteMode() {
+        guard remoteTask == nil, !shuttingDown else { return }
+        if remoteMode.isActive || remoteMode.needsRecovery { restoreRemoteMode(); return }
+        let configuration = preferences.remoteModeConfiguration.validated
+        if configuration.dimDisplay, !canControlDisplay {
+            lastError = "当前无法调节内建屏幕，请关闭远程模式中的背光选项后重试。"
+            return
+        }
+        if configuration.dimDisplay { syncInputMonitoring(requestAccess: true) }
+        remoteTask = Task { [weak self] in
+            guard let self else { return }
+            await remoteMode.activate(configuration)
+            if remoteMode.isActive {
+                guard syncAssertions() else {
+                    let failure = lastError
+                    await remoteMode.deactivate()
+                    refreshSchedule()
+                    lastError = failure
+                    remoteTask = nil
+                    return
+                }
+                remoteOwnsDimSession = configuration.dimDisplay && !isSessionActive && screenState == .on
+                if remoteOwnsDimSession {
+                    enterDimSession(manual: true, keyboardOverride: configuration.dimKeyboard)
+                    if !isSessionActive {
+                        let failure = lastError ?? "关闭屏幕背光失败"
+                        await remoteMode.deactivate()
+                        remoteOwnsDimSession = false
+                        lastError = failure
+                    }
+                }
+            }
+            syncAssertions()
+            refreshSchedule()
+            remoteTask = nil
+        }
+    }
+
+    private func restoreRemoteMode() {
+        guard remoteTask == nil else { return }
+        remoteTask = Task { [weak self] in
+            guard let self else { return }
+            await remoteMode.deactivate()
+            if remoteOwnsDimSession {
+                exitDimSession(restartAutoOffCountdown: true)
+                remoteOwnsDimSession = false
+            }
+            syncAssertions()
+            refreshSchedule()
+            remoteTask = nil
+        }
+    }
+
+    /// AppDelegate waits for this before terminating so system settings restoration finishes.
+    func prepareToQuit() async {
+        shuttingDown = true
+        await lidWake.setEnabled(false)
+        lidWake.shutdown()
+        inputLock.unlock(showRestoredHint: false)
+        inputLockOverlay.dismissNow()
+        tickTask?.cancel()
+        await remoteTask?.value
+        await remoteMode.deactivate()
+        if isSessionActive { exitDimSession() }
     }
 
     func setAutoScreenOff(_ enabled: Bool) {
@@ -140,6 +264,13 @@ final class ScreenOffController {
         // 首次开启时用户正在本机操作、屏幕点亮，是申请「输入监控」授权的合适时机。
         if enabled { syncInputMonitoring(requestAccess: true) }
         refreshSchedule()
+    }
+
+    func setShowsInputLockOverlay(_ enabled: Bool) {
+        preferences.showsInputLockOverlay = enabled
+        if inputLock.isLocked {
+            if enabled { inputLockOverlay.present(service: inputLock) } else { inputLockOverlay.dismissNow() }
+        }
     }
 
     func setAutoKeyboardBacklightOff(_ enabled: Bool) {
@@ -156,6 +287,36 @@ final class ScreenOffController {
         } else if !enabled, let saved = preferences.pendingKeyboardBrightness {
             keyboard.setBrightness(saved)
             preferences.pendingKeyboardBrightness = nil
+        }
+    }
+
+    /// 关闭输入：锁定本机键鼠，同时熄屏——锁输入的场景里屏幕不该继续亮着。
+    /// 解锁后恢复原亮度，浮层是锁定期间唯一的出口提示。
+    func toggleInputLock() {
+        if inputLock.isLocked {
+            inputLock.unlock()
+            return
+        }
+        guard inputLock.lock() else {
+            if let message = inputLock.lastError { lastError = message }
+            return
+        }
+        reconcileDisplayReading()
+        if screenState == .on { enterDimSession(manual: true) }
+    }
+
+    /// 锁定状态只能由服务通知：解锁手势发生在事件回调里，控制器无从轮询。
+    private func observeInputLock() {
+        inputLock.onLockChanged = { [weak self] locked in
+            guard let self else { return }
+            if locked {
+                if preferences.showsInputLockOverlay {
+                    inputLockOverlay.present(service: inputLock)
+                }
+            } else {
+                inputLockOverlay.dismissAfterHint()
+                if isSessionActive { exitDimSession(restartAutoOffCountdown: true) }
+            }
         }
     }
 
@@ -177,12 +338,34 @@ final class ScreenOffController {
 
     func setScreenOffShortcut(_ shortcut: KeyboardShortcuts.Shortcut?) {
         guard preferences.screenOffShortcut != shortcut else { return }
+        guard shortcut == nil || shortcut != preferences.remoteModeShortcut else { return }
         preferences.screenOffShortcut = shortcut
         syncScreenOffShortcut()
     }
 
     func validateScreenOffShortcut(_ shortcut: KeyboardShortcuts.Shortcut) -> KeyboardShortcuts.ValidationResult {
-        ScreenOffShortcutService.validate(shortcut, replacing: preferences.screenOffShortcut)
+        ScreenOffShortcutService.validate(
+            shortcut, replacing: preferences.screenOffShortcut, excluding: preferences.remoteModeShortcut
+        )
+    }
+
+    func setRemoteModeShortcut(_ shortcut: KeyboardShortcuts.Shortcut?) {
+        guard preferences.remoteModeShortcut != shortcut else { return }
+        guard shortcut == nil || shortcut != preferences.screenOffShortcut else { return }
+        preferences.remoteModeShortcut = shortcut
+        syncRemoteModeShortcut()
+    }
+
+    func validateRemoteModeShortcut(_ shortcut: KeyboardShortcuts.Shortcut) -> KeyboardShortcuts.ValidationResult {
+        ScreenOffShortcutService.validate(
+            shortcut, replacing: preferences.remoteModeShortcut, excluding: preferences.screenOffShortcut
+        )
+    }
+
+    private func syncRemoteModeShortcut() {
+        remoteModeShortcut.setShortcut(preferences.remoteModeShortcut) { [weak self] in
+            self?.toggleRemoteMode()
+        }
     }
 
     private func syncScreenOffShortcut() {
@@ -256,6 +439,7 @@ final class ScreenOffController {
     /// 同时重试 HID 订阅，用户在系统设置里授权后无需重启。
     func refreshReadings() {
         reconcileDisplayReading()
+        defaultDisplayModeDescription = RemoteDesktopService.defaultDisplayDescription()
         isOnACPower = powerSource.isOnACPower
         launchAtLogin = LoginItemService.isEnabled
         syncInputMonitoring(requestAccess: false)
@@ -277,12 +461,12 @@ final class ScreenOffController {
     }
 
     /// 进入暗屏会话。键盘背光只在屏幕确实进入暗屏时跟随关闭。
-    private func enterDimSession(manual: Bool) {
+    private func enterDimSession(manual: Bool, keyboardOverride: Bool? = nil) {
         let dimDisplay = (manual || preferences.autoScreenOff)
             && screenState == .on
             && display.isAvailable
         let dimKeyboard = dimDisplay
-            && preferences.autoKeyboardBacklightOff
+            && (keyboardOverride ?? preferences.autoKeyboardBacklightOff)
             && preferences.pendingKeyboardBrightness == nil
             && keyboard.isAvailable
         guard dimDisplay || dimKeyboard else {
@@ -378,6 +562,8 @@ final class ScreenOffController {
 
     /// 物理输入回调：固定保护期结束后的第一次输入立即恢复，早期输入不会延长保护期。
     private func handlePhysicalInput() {
+        // 输入已锁定时本机按键只是误触，不应唤醒屏幕，也不应重置自动关屏倒计时。
+        guard !inputLock.isLocked else { return }
         manualWakeAutoOffAllowedAfter = nil
         guard
             isSessionActive,
@@ -389,21 +575,32 @@ final class ScreenOffController {
 
     // MARK: - 断言
 
-    private func syncAssertions() {
-        power.set(.idle, active: preferences.keepAwake)
-        power.set(.system, active: preferences.keepAwakeWithLidClosed && isOnACPower)
-
-        if preferences.keepAwakeWithLidClosed, !isOnACPower {
-            lastError = "合盖保持唤醒需要接通电源，当前已暂停"
-        } else if lastError?.hasPrefix("合盖保持唤醒") == true {
+    @discardableResult
+    private func syncAssertions() -> Bool {
+        guard !shuttingDown else { return false }
+        let policy = ScreenOffPowerPolicy(
+            keepAwake: preferences.keepAwake, automaticScreenOff: preferences.autoScreenOff,
+            canControlDisplay: canControlDisplay, remoteMode: remoteMode.isActive, dimSession: isSessionActive
+        )
+        let idleOK = power.set(.idle, active: policy.preventSystemIdleSleep)
+        let displayOK = power.set(.display, active: policy.preventDisplayIdleSleep)
+        if !idleOK || !displayOK {
+            lastError = "未能接管系统空闲计时，请重试；当前可能仍按系统设置睡眠。"
+        } else if lastError?.hasPrefix("未能接管系统空闲计时") == true {
             lastError = nil
         }
+        return idleOK && displayOK
     }
 
     private func observePowerSource() {
         powerSource.start { [weak self] isOnAC in
             guard let self else { return }
             isOnACPower = isOnAC
+            // 拔掉电源立即回退：合盖不睡会在包里持续发热并耗尽电池。
+            if !isOnAC, preferences.keepAwakeWithLidClosed {
+                lastError = "已拔掉电源，合盖保持唤醒已关闭"
+                Task { await applyLidWake(false) }
+            }
             syncAssertions()
         }
     }
@@ -424,7 +621,17 @@ final class ScreenOffController {
                 self.refreshSchedule()
             }
         }
+        let displayChanged = NotificationCenter.default.addObserver(
+            forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.defaultDisplayModeDescription = RemoteDesktopService.defaultDisplayDescription()
+                if self.remoteMode.needsRecovery { self.restoreRemoteMode() }
+            }
+        }
         sleepObservers = [willSleep, didWake]
+        screenParametersObserver = displayChanged
     }
 
     // MARK: - 空闲轮询
@@ -436,7 +643,9 @@ final class ScreenOffController {
     }
 
     private func refreshSchedule() {
+        syncAssertions()
         tickTask?.cancel()
+        guard !shuttingDown else { tickTask = nil; return }
         guard needsTickLoop else {
             tickTask = nil
             return
@@ -452,6 +661,7 @@ final class ScreenOffController {
 
     /// 返回下一次轮询间隔。
     private func tick() -> TimeInterval {
+        guard !remoteMode.isBusy else { return 0.5 }
         if isSessionActive {
             // 正常情况下 HID 可靠时不会建轮询；这里只服务降级路径。
             guard !input.isReliable else { return 5 }

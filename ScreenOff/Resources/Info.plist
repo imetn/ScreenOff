@@ -18,16 +18,18 @@
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
-    <key>CFBundleShortVersionString</key>
-    <string>$(MARKETING_VERSION)</string>
-    <key>CFBundleVersion</key>
-    <string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 Hangzhou FrameFlow Information Technology Services Co., Ltd.</string>
+	<key>SUEnableSystemProfiling</key>
+	<true/>
 	<key>SUFeedURL</key>
 	<string>$(SCREENOFF_UPDATE_FEED_URL)</string>
 	<key>SUPublicEDKey</key>

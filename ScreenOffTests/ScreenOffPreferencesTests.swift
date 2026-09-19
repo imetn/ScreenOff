@@ -32,6 +32,7 @@ struct ScreenOffPreferencesTests {
         #expect(preferences.autoKeyboardBacklightOff == false)
         #expect(preferences.idleDelay == IdleDelay.defaultSeconds)
         #expect(preferences.screenOffShortcut == nil)
+        #expect(preferences.remoteModeShortcut == nil)
         #expect(preferences.pendingDisplayBrightness == nil)
         #expect(preferences.pendingKeyboardBrightness == nil)
         #expect(preferences.needsIdleTracking == false)
@@ -235,6 +236,39 @@ struct ScreenOffPreferencesTests {
         #expect(ScreenOffPreferences(defaults: suite.defaults).screenOffShortcut == nil)
     }
 
+    @Test("远程快捷键独立保存，替换或清除不会影响关屏快捷键")
+    func independentRemoteShortcut() {
+        let suite = Suite()
+        defer { suite.tearDown() }
+        let preferences = ScreenOffPreferences(defaults: suite.defaults)
+        let screen = KeyboardShortcuts.Shortcut(.s, modifiers: [.control, .option])
+        let remote = KeyboardShortcuts.Shortcut(.r, modifiers: [.control, .option])
+        let replacement = KeyboardShortcuts.Shortcut(.m, modifiers: [.control, .option])
+        preferences.screenOffShortcut = screen
+        preferences.remoteModeShortcut = remote
+        #expect(ScreenOffPreferences(defaults: suite.defaults).remoteModeShortcut == remote)
+        preferences.remoteModeShortcut = replacement
+        #expect(ScreenOffPreferences(defaults: suite.defaults).remoteModeShortcut == replacement)
+        preferences.remoteModeShortcut = nil
+        #expect(suite.defaults.object(forKey: "remoteModeShortcut") == nil)
+        let reloaded = ScreenOffPreferences(defaults: suite.defaults)
+        #expect(reloaded.remoteModeShortcut == nil)
+        #expect(reloaded.screenOffShortcut == screen)
+    }
+
+    @Test("手动编辑或恢复出的重复组合键只保留关屏动作")
+    func duplicateStoredShortcutsDoNotTriggerTwoActions() throws {
+        let suite = Suite()
+        defer { suite.tearDown() }
+        let shortcut = KeyboardShortcuts.Shortcut(.r, modifiers: [.control, .option])
+        let data = try JSONEncoder().encode(shortcut)
+        suite.defaults.set(data, forKey: "screenOffShortcut")
+        suite.defaults.set(data, forKey: "remoteModeShortcut")
+        let reloaded = ScreenOffPreferences(defaults: suite.defaults)
+        #expect(reloaded.screenOffShortcut == shortcut)
+        #expect(reloaded.remoteModeShortcut == nil)
+    }
+
     @Test("损坏的快捷键数据不会注册或导致启动崩溃", arguments: [
         "not-json",
         "{\"carbonKeyCode\":-1,\"carbonModifiers\":4096}",
@@ -245,7 +279,9 @@ struct ScreenOffPreferencesTests {
         let suite = Suite()
         defer { suite.tearDown() }
         suite.defaults.set(Data(json.utf8), forKey: "screenOffShortcut")
+        suite.defaults.set(Data(json.utf8), forKey: "remoteModeShortcut")
 
         #expect(ScreenOffPreferences(defaults: suite.defaults).screenOffShortcut == nil)
+        #expect(ScreenOffPreferences(defaults: suite.defaults).remoteModeShortcut == nil)
     }
 }

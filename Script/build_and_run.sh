@@ -51,7 +51,17 @@ validate_installed_app() {
     fi
 }
 validate_installed_app
-pkill -x "$APP_NAME" >/dev/null 2>&1 || true
+if pgrep -x "$APP_NAME" >/dev/null; then
+    /usr/bin/osascript -e 'tell application "/Applications/ScreenOff.app" to quit'
+    for _ in {1..80}; do
+        if ! pgrep -x "$APP_NAME" >/dev/null; then break; fi
+        sleep 0.25
+    done
+    if pgrep -x "$APP_NAME" >/dev/null; then
+        echo "App 尚未完成系统设置恢复，停止替换。" >&2
+        exit 1
+    fi
+fi
 
 cd "$ROOT_DIR"
 xcodegen generate
@@ -101,6 +111,12 @@ if ! /usr/bin/ditto "$APP_BUNDLE" "$INSTALL_APP" \
     fi
     exit 1
 fi
+
+# Keep only the installed application discoverable after verification; backups stay compressed.
+LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+"$LSREGISTER" -u "$APP_BUNDLE" >/dev/null 2>&1 || true
+/bin/rm -rf "$APP_BUNDLE"
+"$LSREGISTER" -f "$INSTALL_APP"
 
 open_app() {
     /usr/bin/open -n "$INSTALL_APP"

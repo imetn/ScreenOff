@@ -23,6 +23,7 @@ targets:
     platform: macOS
     sources:
       - path: ScreenOff
+      - path: Shared
     info:
       path: ScreenOff/Resources/Info.plist
       properties:
@@ -35,6 +36,7 @@ targets:
         NSHumanReadableCopyright: "© 2026 Hangzhou FrameFlow Information Technology Services Co., Ltd."
         SUFeedURL: "$(SCREENOFF_UPDATE_FEED_URL)"
         SUPublicEDKey: "$(SCREENOFF_UPDATE_PUBLIC_KEY)"
+        SUEnableSystemProfiling: true
         SURequireSignedFeed: true
         SUVerifyUpdateBeforeExtraction: true
         ScreenOffGitHubURL: "$(SCREENOFF_GITHUB_URL)"
@@ -42,13 +44,35 @@ targets:
     dependencies:
       - package: Sparkle
       - package: KeyboardShortcuts
+      - target: ScreenOffLidHelper
+        embed: false
+        link: false
+    # helper 与 launchd 配置必须进入 App bundle 并被同一次签名覆盖；
+    # 构建脚本阶段仍早于代码签名，因此在这里嵌入是安全的。
+    postBuildScripts:
+      - name: 嵌入合盖唤醒守护进程
+        inputFiles:
+          - $(BUILT_PRODUCTS_DIR)/com.frameflowtech.screenoff.lidhelper
+          - $(SRCROOT)/ScreenOffLidHelper/com.frameflowtech.screenoff.lidhelper.plist
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/MacOS/com.frameflowtech.screenoff.lidhelper
+          - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Library/LaunchDaemons/com.frameflowtech.screenoff.lidhelper.plist
+        script: |
+          set -euo pipefail
+          CONTENTS="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}"
+          /bin/mkdir -p "${CONTENTS}/MacOS" "${CONTENTS}/Library/LaunchDaemons"
+          # 用 cp 而非 ditto：脚本沙盒只放行已声明的输出路径，ditto 的临时文件会被拒绝。
+          /bin/cp -p "${BUILT_PRODUCTS_DIR}/com.frameflowtech.screenoff.lidhelper" \
+            "${CONTENTS}/MacOS/com.frameflowtech.screenoff.lidhelper"
+          /bin/cp -p "${SRCROOT}/ScreenOffLidHelper/com.frameflowtech.screenoff.lidhelper.plist" \
+            "${CONTENTS}/Library/LaunchDaemons/com.frameflowtech.screenoff.lidhelper.plist"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.frameflowtech.screenoff
         PRODUCT_NAME: ScreenOff
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        MARKETING_VERSION: 1.0.0
-        CURRENT_PROJECT_VERSION: 4
+        MARKETING_VERSION: 1.1.0
+        CURRENT_PROJECT_VERSION: 5
         SWIFT_VERSION: 6.0
         SCREENOFF_UPDATE_FEED_URL: "https://github.com/imetn/ScreenOff/releases/latest/download/appcast.xml"
         SCREENOFF_UPDATE_PUBLIC_KEY: "ay6OMvNqpMRkQauAp40v399T9IR2DWoa2uLnS/naeL8="
@@ -61,6 +85,34 @@ targets:
       testTargets:
         - ScreenOffTests
 
+  # 合盖保持唤醒的特权部分：只做一件事——以 root 写 SleepDisabled，并在失去客户端时立刻回退。
+  ScreenOffLidHelper:
+    type: tool
+    platform: macOS
+    sources:
+      - path: ScreenOffLidHelper
+        excludes:
+          - "*.plist"
+      - path: Shared
+    info:
+      path: ScreenOffLidHelper/Info.plist
+      properties:
+        CFBundleIdentifier: com.frameflowtech.screenoff.lidhelper
+        CFBundleName: ScreenOff Lid Helper
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        NSHumanReadableCopyright: "© 2026 Hangzhou FrameFlow Information Technology Services Co., Ltd."
+    settings:
+      base:
+        PRODUCT_NAME: com.frameflowtech.screenoff.lidhelper
+        PRODUCT_BUNDLE_IDENTIFIER: com.frameflowtech.screenoff.lidhelper
+        MARKETING_VERSION: 1.1.0
+        CURRENT_PROJECT_VERSION: 5
+        SWIFT_VERSION: 6.0
+        CREATE_INFOPLIST_SECTION_IN_BINARY: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        SKIP_INSTALL: YES
+
   # 纯逻辑单元测试：直接编译被测源文件，不以 App 作为 Test Host，
   # 因此不会启动菜单栏进程、不触发授权弹窗，也能在无真机能力的 CI 上运行。
   ScreenOffTests:
@@ -68,6 +120,7 @@ targets:
     platform: macOS
     sources:
       - path: ScreenOffTests
+      - path: ScreenOff/Models/RemoteMode.swift
       - path: ScreenOff/Models/IdleDelay.swift
       - path: ScreenOff/Models/ScreenOffPreferences.swift
       - path: ScreenOff/Services/ScreenOffShortcutService.swift

@@ -66,6 +66,16 @@ final class UpdateController: NSObject, SPUUpdaterDelegate {
         updater?.automaticallyChecksForUpdates = enabled
     }
 
+    /// 匿名系统画像随更新检查一起发送，用于了解机型与系统版本分布。
+    /// Sparkle 在首次询问是否自动检查更新时一并征求同意，默认不发送；这里让用户随时改主意。
+    var sendsSystemProfile: Bool {
+        updater?.sendsSystemProfile ?? false
+    }
+
+    func setSendsSystemProfile(_ enabled: Bool) {
+        updater?.sendsSystemProfile = enabled
+    }
+
     func checkForUpdates() {
         guard isConfigured, let updater else { return }
         NSApplication.shared.activate(ignoringOtherApps: true)

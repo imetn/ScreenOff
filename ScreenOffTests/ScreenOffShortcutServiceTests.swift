@@ -10,6 +10,14 @@ struct ScreenOffShortcutServiceTests {
         ScreenOffShortcutService(events: { _ in AsyncStream { _ in } })
     }
 
+    @Test("两项操作不能使用同一个组合键，包括重新录入当前值")
+    func rejectsOtherActionShortcut() {
+        let shortcut = KeyboardShortcuts.Shortcut(.r, modifiers: [.control, .option])
+        let expected = KeyboardShortcuts.ValidationResult.disallow(reason: "这个快捷键已用于另一个操作，请换一组。")
+        #expect(ScreenOffShortcutService.validate(shortcut, replacing: nil, excluding: shortcut) == expected)
+        #expect(ScreenOffShortcutService.validate(shortcut, replacing: shortcut, excluding: shortcut) == expected)
+    }
+
     @Test("单个按键、单独功能键和仅 Shift 的输入都不能设为快捷键")
     func rejectsSingleKeys() {
         for shortcut: KeyboardShortcuts.Shortcut in [
