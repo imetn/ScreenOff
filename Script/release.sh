@@ -171,10 +171,14 @@ spctl --assess --type execute --verbose=2 "$APP_PATH"
 
 /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$UPDATE_ARCHIVE"
 
+# Finder 窗口的 bounds 含标题栏，背景图铺的却是内容区。标题栏在当前 macOS 上是 32pt，
+# 因此 --window-size 的高度必须是背景图高度 + 32，否则背景底部会被裁掉、图标也跟着偏下。
 DMG_SOURCE="$RELEASE_DIR/dmg-source"
 DMG_BACKGROUND="$RELEASE_DIR/dmg-background.png"
 mkdir -p "$DMG_SOURCE"
 /usr/bin/ditto "$APP_PATH" "$DMG_SOURCE/$APP_NAME.app"
+# 阻止 Spotlight 索引挂载中的临时卷：索引会占用卷，导致 create-dmg 卸载时反复 Resource busy 而失败。
+/usr/bin/touch "$DMG_SOURCE/.metadata_never_index"
 /usr/bin/sips \
     -s format png \
     "$ROOT_DIR/Script/assets/dmg-background.svg" \
@@ -184,7 +188,7 @@ create-dmg \
     --volname "Screen Off" \
     --background "$DMG_BACKGROUND" \
     --window-pos 200 120 \
-    --window-size 560 360 \
+    --window-size 560 392 \
     --icon-size 104 \
     --text-size 13 \
     --icon "$APP_NAME.app" 152 184 \
