@@ -9,20 +9,22 @@ struct SettingsView: View {
     @Bindable var updateController: UpdateController
     let presentationController: AppPresentationController
     @State private var maximumContentHeight: CGFloat = .infinity
+    @State private var language: AppLanguage = .effective
+    @State private var languageNeedsRestart = false
     @State private var shortcutRecordingMessage: String?
     @State private var remoteShortcutRecordingMessage: String?
 
     private var preferences: ScreenOffPreferences { controller.preferences }
-    private var minimumContentHeight: CGFloat { min(332, maximumContentHeight) }
 
     var body: some View {
         WholePointHeightLayout {
             TabView {
+                // 远程排第一：这台 Mac 的主场景是远程办公，进设置多半是来调它。
+                remoteSettings
+                    .tabItem { Label("远程", systemImage: "desktopcomputer") }
+
                 featureSettings
                     .tabItem { Label("功能", systemImage: "switch.2") }
-
-                remoteSettings
-                    .tabItem { Label("远程模式", systemImage: "desktopcomputer") }
 
                 generalSettings
                     .tabItem { Label("通用", systemImage: "gearshape") }
@@ -31,8 +33,9 @@ struct SettingsView: View {
                     .tabItem { Label("关于", systemImage: "info.circle") }
             }
             .frame(width: 520)
-            // 四页保持相同高度；小屏幕仍允许表单内部滚动。
-            .frame(height: minimumContentHeight)
+            // 每页按自身内容定高。四页内容量差得远，固定同一高度会让「关于」留一大块空白，
+            // 而「通用」被压到要滚动。仍以屏幕可用高度封顶，超出时表单内部滚动。
+            .frame(maxHeight: maximumContentHeight)
         }
         .fixedSize(horizontal: false, vertical: true)
         .overlay(alignment: .top) {
@@ -58,7 +61,7 @@ struct SettingsView: View {
         settingsForm {
             Section {
                 if controller.remoteMode.isActive {
-                    LabeledContent("保持 Mac 唤醒", value: "随远程模式")
+                    LabeledContent("保持 Mac 唤醒", value: String(localized: "随远程模式"))
                 } else {
                     Toggle("保持 Mac 唤醒", isOn: Binding(
                         get: { preferences.keepAwake },
@@ -131,7 +134,9 @@ struct SettingsView: View {
                         ), in: 0...1)
                         .frame(width: 136)
                         .accessibilityLabel("屏幕亮度")
-                        Button(controller.screenState == .off ? "点亮屏幕" : "关闭屏幕") {
+                        // 不重复「屏幕」：这一行的标题已经点明对象，而英文的
+                        // "Turn On Display" 只剩 9 pt 余量，会被 LabeledContent 挤到下一行。
+                        Button(controller.screenState == .off ? String(localized: "点亮") : String(localized: "熄灭")) {
                             controller.toggleScreen()
                         }
                     }
@@ -257,19 +262,19 @@ struct SettingsView: View {
         var actionTitle: String? {
             switch self {
             case .granted, .unsupported: nil
-            case .missing: "授权…"
-            case .denied: "前往设置…"
-            case .pendingApproval: "前往批准…"
+            case .missing: String(localized: "授权…")
+            case .denied: String(localized: "前往设置…")
+            case .pendingApproval: String(localized: "前往批准…")
             }
         }
 
         var statusText: String {
             switch self {
-            case .granted: "已授权"
-            case .unsupported: "不可用"
-            case .missing: "未授权"
-            case .denied: "已拒绝"
-            case .pendingApproval: "等待批准"
+            case .granted: String(localized: "已授权")
+            case .unsupported: String(localized: "不可用")
+            case .missing: String(localized: "未授权")
+            case .denied: String(localized: "已拒绝")
+            case .pendingApproval: String(localized: "等待批准")
             }
         }
     }
@@ -283,41 +288,112 @@ struct SettingsView: View {
         }
     }
 
-    private func permissionRow(
-        title: String, detail: String, state: PermissionState, action: @escaping () -> Void
-    ) -> some View {
+    /// 一项等着用户动手的权限。
+    private struct PermissionItem: Identifiable {
+        let id: String
+        let title: String
+        let detail: String
+        /// 边界说明，平时收在提示里：授权行要短，但「它到底能看到什么」必须随时查得到。
+        let privacyNote: String
+        let state: PermissionState
+        let action: () -> Void
+
+        var spokenDetail: String { "\(detail)\(privacyNote)" }
+    }
+
+    private var inputMonitoringState: PermissionState {
+        controller.isInputMonitoringDenied ? .denied
+            : (controller.isInputMonitoringReliable ? .granted : .missing)
+    }
+
+    private var accessibilityState: PermissionState {
+        controller.inputLock.hasAccess ? .granted : .missing
+    }
+
+    /// 只列「功能确实在用、权限却不到位」的项。
+    /// 没开自动关屏时缺「输入监控」是正常状态，把它排成待办只会让人以为出了故障。
+    private var pendingPermissions: [PermissionItem] {
+        var items: [PermissionItem] = []
+        if preferences.needsIdleTracking, inputMonitoringState != .granted {
+            items.append(PermissionItem(
+                id: "inputMonitoring",
+                title: String(localized: "输入监控"),
+                detail: String(localized: "自动关屏靠它区分本机操作与远程操作。"),
+                privacyNote: String(localized: "只判断有没有本机输入，不记录输入内容；快捷键不需要它。"),
+                state: inputMonitoringState,
+                action: { controller.openInputMonitoringSettings() }
+            ))
+        }
+        // 「关闭输入」没有开关，菜单栏里随时能触发，所以只看权限本身。
+        // 系统的授权弹窗一辈子只弹一次，拒绝过的人没有这一行就再也找不到补救入口。
+        if accessibilityState != .granted {
+            items.append(PermissionItem(
+                id: "accessibility",
+                title: String(localized: "辅助功能"),
+                detail: String(localized: "「关闭输入」靠它拦截本机键盘与触控板。"),
+                privacyNote: String(localized: "只吞掉事件，不读取按键内容。"),
+                state: accessibilityState,
+                action: { controller.inputLock.openAccessibilitySettings() }
+            ))
+        }
+        // 系统不支持时功能本身就用不了，那句说明归 lidWakeNote，这里不重复。
+        if preferences.keepAwakeWithLidClosed, controller.lidWake.isSupported,
+           lidWakePermissionState != .granted {
+            items.append(PermissionItem(
+                id: "lidHelper",
+                title: String(localized: "后台守护进程"),
+                detail: String(localized: "「合盖后保持唤醒」靠它写入系统睡眠设置。"),
+                privacyNote: String(localized: "只做这一件事，不读取其他数据。"),
+                state: lidWakePermissionState,
+                action: { controller.lidWake.openLoginItemsSettings() }
+            ))
+        }
+        return items
+    }
+
+    /// 没有待办时仍留一行：权限可能在系统设置里被悄悄撤销，用户需要一个确认现状的地方。
+    private var permissionSummaryDetail: String {
+        [(String(localized: "输入监控"), inputMonitoringState),
+         (String(localized: "辅助功能"), accessibilityState),
+         (String(localized: "后台守护进程"), lidWakePermissionState)]
+            .map { String(localized: "\($0.0)：\($0.1.statusText)") }
+            .joined(separator: "\n")
+    }
+
+    private func permissionRow(_ item: PermissionItem) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 8) {
-                Image(systemName: state.symbol)
-                    .foregroundStyle(state.tint)
+                Image(systemName: item.state.symbol)
+                    .foregroundStyle(item.state.tint)
                     .accessibilityHidden(true)
-                Text(title)
+                Text(item.title)
                 Spacer(minLength: 8)
-                if let actionTitle = state.actionTitle {
-                    Button(actionTitle, action: action)
+                if let actionTitle = item.state.actionTitle {
+                    Button(actionTitle, action: item.action)
                 } else {
-                    Text(state.statusText)
+                    Text(item.state.statusText)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
-            Text(detail)
+            Text(item.detail)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 2)
+        .help(item.privacyNote)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title)，\(state.statusText)。\(detail)")
+        .accessibilityLabel("\(item.title)，\(item.state.statusText)。\(item.spokenDetail)")
     }
 
     /// 合盖保持唤醒的前置条件说明，条件满足时不占位置。
     private var lidWakeNote: String? {
-        guard controller.lidWake.isSupported else { return "当前系统不支持写入睡眠设置，合盖仍会睡眠。" }
-        if !controller.isOnACPower { return "电池供电时不可用：合盖不睡会耗尽电池，请接通电源。" }
+        guard controller.lidWake.isSupported else { return String(localized: "当前系统不支持写入睡眠设置，合盖仍会睡眠。") }
+        if !controller.isOnACPower { return String(localized: "电池供电时不可用：合盖不睡会耗尽电池，请接通电源。") }
         switch controller.lidWake.readiness {
-        case .requiresApproval: return "后台守护进程等待批准，批准后才会生效。"
-        case .notRegistered: return preferences.keepAwakeWithLidClosed ? "后台守护进程尚未安装。" : nil
+        case .requiresApproval: return String(localized: "后台守护进程等待批准，批准后才会生效。")
+        case .notRegistered: return preferences.keepAwakeWithLidClosed ? String(localized: "后台守护进程尚未安装。") : nil
         default: return nil
         }
     }
@@ -327,14 +403,37 @@ struct SettingsView: View {
     private var generalSettings: some View {
         settingsForm {
             Section {
+                Picker("语言", selection: Binding(
+                    get: { language },
+                    set: { newValue in
+                        guard newValue != language else { return }
+                        language = newValue
+                        AppLanguage.apply(newValue)
+                        languageNeedsRestart = true
+                    }
+                )) {
+                    ForEach(AppLanguage.allCases) { option in
+                        Text(option.title).tag(option)
+                    }
+                }
+                if languageNeedsRestart {
+                    HStack(spacing: 8) {
+                        Text("重新启动后生效")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Button("立即重启") { AppLanguage.restart() }
+                            .buttonStyle(.link)
+                            .font(.caption)
+                    }
+                }
                 Toggle("登录时启动", isOn: Binding(
                     get: { controller.launchAtLogin },
                     set: { controller.setLaunchAtLogin($0) }
                 ))
-                shortcutRow("关闭屏幕", identifier: "screenOffShortcutRecorder", shortcut: Binding(
+                shortcutRow(String(localized: "关闭屏幕"), identifier: "screenOffShortcutRecorder", shortcut: Binding(
                     get: { preferences.screenOffShortcut }, set: { controller.setScreenOffShortcut($0) }
                 ), message: $shortcutRecordingMessage, validate: controller.validateScreenOffShortcut)
-                shortcutRow("远程模式", identifier: "remoteModeShortcutRecorder", shortcut: Binding(
+                shortcutRow(String(localized: "远程模式"), identifier: "remoteModeShortcutRecorder", shortcut: Binding(
                     get: { preferences.remoteModeShortcut }, set: { controller.setRemoteModeShortcut($0) }
                 ), message: $remoteShortcutRecordingMessage, validate: controller.validateRemoteModeShortcut)
                 Toggle("自动检查更新", isOn: Binding(
@@ -350,25 +449,21 @@ struct SettingsView: View {
                 .help("随更新检查发送 macOS 版本、机型、CPU、内存与系统语言，用于了解版本分布。不含任何账号、输入、屏幕或远程会话信息，也不生成设备标识。")
             }
             Section {
-                permissionRow(
-                    title: "输入监控",
-                    detail: "自动关屏靠它区分本机键鼠与远程操作。不记录输入内容，快捷键不需要它。",
-                    state: controller.isInputMonitoringDenied ? .denied
-                        : (controller.isInputMonitoringReliable ? .granted : .missing),
-                    action: { controller.openInputMonitoringSettings() }
-                )
-                permissionRow(
-                    title: "辅助功能",
-                    detail: "「关闭输入」靠它拦截本机键盘与触控板。只吞掉事件，不读取按键内容。",
-                    state: controller.inputLock.hasAccess ? .granted : .missing,
-                    action: { controller.inputLock.openAccessibilitySettings() }
-                )
-                permissionRow(
-                    title: "后台守护进程",
-                    detail: "「合盖后保持唤醒」靠它以系统身份写入睡眠设置。只做这一件事。",
-                    state: lidWakePermissionState,
-                    action: { controller.lidWake.openLoginItemsSettings() }
-                )
+                if pendingPermissions.isEmpty {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                            .accessibilityHidden(true)
+                        Text("所需权限均已授权")
+                        Spacer(minLength: 8)
+                    }
+                    .padding(.vertical, 2)
+                    .help(permissionSummaryDetail)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("所需权限均已授权。\(permissionSummaryDetail)")
+                } else {
+                    ForEach(pendingPermissions) { permissionRow($0) }
+                }
             }
         }
     }
@@ -381,22 +476,12 @@ struct SettingsView: View {
         validate: @escaping (KeyboardShortcuts.Shortcut) -> KeyboardShortcuts.ValidationResult
     ) -> some View {
         VStack(alignment: .leading, spacing: 6) {
+            // 清除入口就是录制控件本身：再点一次即清空，不另挂一个 ✕。
             LabeledContent("\(title)快捷键") {
-                HStack(spacing: 6) {
-                    ShortcutRecorderButton(
-                        shortcut: shortcut, actionTitle: title, accessibilityIdentifier: identifier,
-                        validate: validate, onRecordingMessage: { message.wrappedValue = $0 }
-                    ).fixedSize()
-                    if shortcut.wrappedValue != nil {
-                        Button { shortcut.wrappedValue = nil } label: {
-                            Image(systemName: "xmark.circle.fill")
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(.secondary)
-                        .help("清除快捷键")
-                        .accessibilityLabel("清除\(title)快捷键")
-                    }
-                }
+                ShortcutRecorderButton(
+                    shortcut: shortcut, actionTitle: title, accessibilityIdentifier: identifier,
+                    validate: validate, onRecordingMessage: { message.wrappedValue = $0 }
+                ).fixedSize()
             }
             if let message = message.wrappedValue {
                 Text(message).font(.caption).foregroundStyle(.secondary)
@@ -467,7 +552,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("开源")
                             .font(.headline)
-                        Text(updateController.githubURL == nil ? "GitHub 仓库尚未发布" : "欢迎在 GitHub 共建或反馈问题")
+                        Text(updateController.githubURL == nil ? String(localized: "GitHub 仓库尚未发布") : String(localized: "欢迎在 GitHub 共建或反馈问题"))
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -515,7 +600,6 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity)
         .padding(.top, 24)
         .padding(.bottom, 20)
-        .frame(minHeight: minimumContentHeight, alignment: .top)
     }
 
     private var versionText: String {
@@ -530,17 +614,17 @@ struct SettingsView: View {
     }
 
     private var capabilityNote: CapabilityNote? {
-        if !controller.canControlDisplay { return CapabilityNote(message: "无法控制内建屏幕亮度，屏幕关闭功能不可用。") }
+        if !controller.canControlDisplay { return CapabilityNote(message: String(localized: "无法控制内建屏幕亮度，屏幕关闭功能不可用。")) }
         if preferences.needsIdleTracking, !controller.isInputMonitoringReliable {
             return CapabilityNote(
                 message: controller.isInputMonitoringDenied
-                    ? "「输入监控」权限已被拒绝，无法区分物理输入与远程输入。"
-                    : "请在系统设置的「输入监控」中允许 Screen Off，否则无法区分远程输入。",
+                    ? String(localized: "「输入监控」权限已被拒绝，无法区分物理输入与远程输入。")
+                    : String(localized: "请在系统设置的「输入监控」中允许 Screen Off，否则无法区分远程输入。"),
                 offersInputMonitoringSettings: true
             )
         }
         if preferences.autoKeyboardBacklightOff, !controller.canControlKeyboardBacklight {
-            return CapabilityNote(message: "当前键盘不支持背光调节。")
+            return CapabilityNote(message: String(localized: "当前键盘不支持背光调节。"))
         }
         return nil
     }

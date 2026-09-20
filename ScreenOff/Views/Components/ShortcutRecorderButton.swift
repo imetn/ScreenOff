@@ -3,6 +3,9 @@ import KeyboardShortcuts
 import SwiftUI
 
 /// 真正的按钮式录制入口；仅在用户点击后接收当前窗口的按键，不使用文本输入框。
+///
+/// 清除快捷键不靠额外的按钮：点击进入录制时就把当前值清空，按下组合键即写入新值，
+/// 按 Esc 或点击别处就停在「未设置」。这样「改」和「删」是同一个动作，控件旁边不必再挂一个 ✕。
 struct ShortcutRecorderButton: NSViewRepresentable {
     @Binding var shortcut: KeyboardShortcuts.Shortcut?
     let actionTitle: String
@@ -17,7 +20,7 @@ struct ShortcutRecorderButton: NSViewRepresentable {
     func updateNSView(_ button: RecorderButton, context: Context) {
         button.actionTitle = actionTitle
         button.setAccessibilityIdentifier(accessibilityIdentifier)
-        button.setAccessibilityLabel("\(actionTitle)快捷键")
+        button.setAccessibilityLabel(String(localized: "\(actionTitle)快捷键"))
         button.onChange = { shortcut = $0 }
         button.validate = validate
         button.onRecordingMessage = onRecordingMessage
@@ -26,7 +29,8 @@ struct ShortcutRecorderButton: NSViewRepresentable {
 
     func sizeThatFits(_ proposal: ProposedViewSize, nsView: RecorderButton, context: Context) -> CGSize? {
         let size = nsView.intrinsicContentSize
-        return CGSize(width: max(96, size.width), height: size.height)
+        // 录制态的提示文字比组合键长，尤其是日语。给足下限，按钮不会在点击瞬间跳宽。
+        return CGSize(width: max(148, size.width), height: size.height)
     }
 
     static func dismantleNSView(_ button: RecorderButton, coordinator: ()) {
@@ -34,7 +38,7 @@ struct ShortcutRecorderButton: NSViewRepresentable {
     }
 
     final class RecorderButton: NSButton {
-        var actionTitle = "关闭屏幕"
+        var actionTitle = ""
         var onChange: ((KeyboardShortcuts.Shortcut?) -> Void)?
         var validate: ((KeyboardShortcuts.Shortcut) -> KeyboardShortcuts.ValidationResult)?
         var onRecordingMessage: ((String?) -> Void)?
@@ -88,6 +92,13 @@ struct ShortcutRecorderButton: NSViewRepresentable {
             }
             guard let window, window.makeFirstResponder(self) else { return }
 
+            // 先清空：录制中显示的是「等待输入」，此刻仍留着旧组合键会让人以为它还生效。
+            // 用户不再按键就停在未设置，这正是删除快捷键的路径。
+            if shortcut != nil {
+                shortcut = nil
+                onChange?(nil)
+            }
+
             previousHotKeysEnabled = KeyboardShortcuts.isEnabled
             KeyboardShortcuts.isEnabled = false
             eventMonitor = NSEvent.addLocalMonitorForEvents(
@@ -105,7 +116,7 @@ struct ShortcutRecorderButton: NSViewRepresentable {
                 MainActor.assumeIsolated { self?.stopRecording() }
             }
             updateAppearance()
-            showMessage("按下含 ⌘、⌃ 或 ⌥ 的组合键；Esc 取消。")
+            showMessage(String(localized: "按下含 ⌘、⌃ 或 ⌥ 的组合键；点击其他位置则不设置快捷键。"))
         }
 
         func stopRecording() {
@@ -142,7 +153,7 @@ struct ShortcutRecorderButton: NSViewRepresentable {
                 stopRecording()
                 return event
             }
-            switch validate?(candidate) ?? .disallow(reason: "暂时无法设置快捷键，请重试。") {
+            switch validate?(candidate) ?? .disallow(reason: String(localized: "暂时无法设置快捷键，请重试。")) {
             case .allow:
                 stopRecording()
                 onChange?(candidate)
@@ -155,9 +166,11 @@ struct ShortcutRecorderButton: NSViewRepresentable {
 
         private func updateAppearance() {
             let recording = eventMonitor != nil
-            title = recording ? "按下组合键…" : (shortcut?.description ?? "未设置")
+            title = recording ? String(localized: "按下组合键…") : (shortcut?.description ?? String(localized: "未设置"))
             contentTintColor = recording ? .controlAccentColor : nil
-            toolTip = recording ? "按下组合键保存；按 Esc 或点击其他位置取消。" : "点击设置\(actionTitle)快捷键。"
+            toolTip = recording
+                ? String(localized: "按下组合键保存；按 Esc 或点击其他位置则不设置。")
+                : String(localized: "点击设置\(actionTitle)快捷键；点击后当前快捷键会先清空。")
             setAccessibilityValue(title)
             setAccessibilityHelp(toolTip)
             invalidateIntrinsicContentSize()
