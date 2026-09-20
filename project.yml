@@ -63,8 +63,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.frameflowtech.screenoff
         PRODUCT_NAME: ScreenOff
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        MARKETING_VERSION: 1.2.0
-        CURRENT_PROJECT_VERSION: 9
+        MARKETING_VERSION: 1.2.1
+        CURRENT_PROJECT_VERSION: 10
         SWIFT_VERSION: 6.0
         SCREENOFF_UPDATE_FEED_URL: "https://github.com/imetn/ScreenOff/releases/latest/download/appcast.xml"
         SCREENOFF_UPDATE_PUBLIC_KEY: "ay6OMvNqpMRkQauAp40v399T9IR2DWoa2uLnS/naeL8="
@@ -98,8 +98,8 @@ targets:
       base:
         PRODUCT_NAME: com.frameflowtech.screenoff.lidhelper
         PRODUCT_BUNDLE_IDENTIFIER: com.frameflowtech.screenoff.lidhelper
-        MARKETING_VERSION: 1.2.0
-        CURRENT_PROJECT_VERSION: 9
+        MARKETING_VERSION: 1.2.1
+        CURRENT_PROJECT_VERSION: 10
         SWIFT_VERSION: 6.0
         CREATE_INFOPLIST_SECTION_IN_BINARY: YES
         ENABLE_HARDENED_RUNTIME: YES
