@@ -2,9 +2,12 @@ import AppKit
 import CoreGraphics
 import Foundation
 import IOKit.graphics
+import os
 
 @MainActor
 final class RemoteDesktopService: RemoteModeEnvironment {
+    private static let log = Logger(subsystem: AppLog.subsystem, category: "remote-mode")
+
     private static let stageDomain = "com.apple.WindowManager" as CFString
     private static let stageKey = "GloballyEnabled" as CFString
 
@@ -48,6 +51,8 @@ final class RemoteDesktopService: RemoteModeEnvironment {
             }
             result.stageManager = .init(value: try Self.readStageManager())
         }
+        let displaySummary = result.display.map { "\($0.original.title)/\($0.original.modeID) → \($0.target.title)/\($0.target.modeID)" } ?? "不涉及"
+        Self.log.notice("已记录原设置 显示=\(displaySummary, privacy: .public) 台前调度原值存在=\(result.stageManager?.value != nil, privacy: .public)")
         return result
     }
 
@@ -58,23 +63,47 @@ final class RemoteDesktopService: RemoteModeEnvironment {
                                    size: dock.size == nil ? nil : configuration.dockSize)
         }
         if snapshot.stageManager != nil { try Self.setStageManager(configuration.stageManager == .enabled) }
+        Self.log.notice("远程模式设置已应用")
     }
 
     func restore(_ snapshot: RemoteModeSnapshot) async -> RemoteModeRestoreResult {
         var remaining = snapshot
         var errors: [String] = []
         if let stage = snapshot.stageManager {
-            do { try Self.setStageManager(stage.value); remaining.stageManager = nil }
-            catch { errors.append("台前调度恢复失败：\(error.localizedDescription)") }
+            // 原本没有这个键时不能只把键删掉：WindowManager 不会因为键消失而退出台前调度，
+            // 它稍后还会把仍在运行的状态写回偏好，用户看到的就是「开关没恢复」。
+            // 键缺失的等价语义就是关闭，显式写 false 才能真正回到原样。
+            let target = stage.restoreTarget
+            do {
+                try Self.setStageManager(target)
+                remaining.stageManager = nil
+                Self.log.notice("台前调度恢复为 \(target, privacy: .public)，原值存在=\(stage.value != nil, privacy: .public)")
+            } catch {
+                errors.append("台前调度恢复失败：\(error.localizedDescription)")
+                Self.log.error("台前调度恢复失败 \(error.localizedDescription, privacy: .public)")
+            }
         }
         if let dock = snapshot.dock {
-            do { try await Self.setDock(autohide: dock.autohide, size: dock.size); remaining.dock = nil }
-            catch { errors.append("Dock 恢复失败：\(error.localizedDescription)") }
+            do {
+                try await Self.setDock(autohide: dock.autohide, size: dock.size)
+                remaining.dock = nil
+                Self.log.notice("Dock 已恢复")
+            } catch {
+                errors.append("Dock 恢复失败：\(error.localizedDescription)")
+                Self.log.error("Dock 恢复失败 \(error.localizedDescription, privacy: .public)")
+            }
         }
         if let display = snapshot.display {
-            do { try Self.setDisplay(display.uuid, mode: display.original); remaining.display = nil }
-            catch { errors.append("显示缩放恢复失败：\(error.localizedDescription)") }
+            do {
+                try Self.setDisplay(display.uuid, mode: display.original)
+                remaining.display = nil
+                Self.log.notice("显示模式恢复为 \(display.original.title, privacy: .public) id=\(display.original.modeID, privacy: .public)")
+            } catch {
+                errors.append("显示缩放恢复失败：\(error.localizedDescription)")
+                Self.log.error("显示模式恢复失败 \(error.localizedDescription, privacy: .public)")
+            }
         }
+        Self.log.notice("恢复结束，残留=\(!remaining.isEmpty, privacy: .public) 错误数=\(errors.count, privacy: .public)")
         return .init(remaining: remaining, errors: errors)
     }
 

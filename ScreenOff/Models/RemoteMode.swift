@@ -85,8 +85,12 @@ struct RemoteModeSnapshot: Codable, Equatable, Sendable {
         var size: Double?
     }
     struct StageManager: Codable, Equatable, Sendable {
-        // nil means the key did not exist: restoring false would not restore the original preference.
+        // nil means the key did not exist before the session started.
         var value: Bool?
+
+        /// 恢复时要写回的值。键缺失的等价行为就是关闭，因此 nil 必须还原成 false：
+        /// 只把键删掉不会让 WindowManager 退出台前调度，它随后会把运行中的状态写回偏好。
+        var restoreTarget: Bool { value ?? false }
     }
     var version = 1
     var display: Display?

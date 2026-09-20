@@ -164,12 +164,21 @@ final class ScreenOffController {
         syncAssertions()
     }
 
+    /// 权限可能在系统设置里被改动，界面重新出现时必须重新查询，
+    /// 否则用户授权完切回来，状态还停在「未授权」。
+    func refreshPermissions() {
+        syncInputMonitoring(requestAccess: false)
+        inputLock.refreshAccess()
+        lidWake.refresh()
+    }
+
     /// 合盖保持唤醒：写的是系统级 `SleepDisabled`，只在接通电源时允许开启。
     func setKeepAwakeWithLidClosed(_ enabled: Bool) {
         guard !enabled || isOnACPower else {
             lastError = "电池供电时不能合盖保持唤醒，请先接通电源"
             return
         }
+        lidWake.refresh()
         if enabled, lidWake.readiness == .notRegistered, !lidWake.registerHelper() {
             lastError = lidWake.lastError
             return

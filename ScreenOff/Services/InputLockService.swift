@@ -44,8 +44,16 @@ final class InputLockService {
     @ObservationIgnored private let clock = ContinuousClock()
     @ObservationIgnored private let log = Logger(subsystem: AppLog.subsystem, category: "input-lock")
 
-    /// 是否已取得辅助功能授权。每次读取都向系统查询，不缓存。
-    var hasAccess: Bool { AXIsProcessTrusted() }
+    /// 是否已取得辅助功能授权。界面读这份缓存，否则 SwiftUI 无从得知授权在系统设置里发生了变化。
+    private(set) var hasAccess = AXIsProcessTrusted()
+
+    /// 向系统重新查询授权状态并刷新缓存；加锁等内部判断一律走它，避免读到过期值。
+    @discardableResult
+    func refreshAccess() -> Bool {
+        let granted = AXIsProcessTrusted()
+        if granted != hasAccess { hasAccess = granted }
+        return granted
+    }
 
     /// 弹出系统授权引导。只在用户主动点击「关闭输入」而尚未授权时调用。
     func requestAccess() {
@@ -65,7 +73,7 @@ final class InputLockService {
         guard !isLocked else { return true }
         restoredTask?.cancel()
         restoredTask = nil
-        guard hasAccess else {
+        guard refreshAccess() else {
             lastError = "未取得「辅助功能」权限，无法关闭输入"
             requestAccess()
             log.notice("关闭输入被拒：缺少辅助功能授权")

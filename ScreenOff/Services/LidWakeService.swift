@@ -31,7 +31,12 @@ final class LidWakeService {
 
     var isSupported: Bool { SystemPowerSetting.canRead }
 
-    var readiness: Readiness {
+    /// 界面读这份缓存；`SMAppService.status` 是计算值，批准动作发生在系统设置里，
+    /// 不刷新就永远停在「等待批准」。
+    private(set) var readiness: Readiness = .notRegistered
+
+    /// 内部判断一律用实时值，避免拿过期缓存去写系统设置。
+    private var currentReadiness: Readiness {
         guard isSupported else { return .unsupported }
         return switch service.status {
         case .enabled: .ready
@@ -42,6 +47,8 @@ final class LidWakeService {
 
     func refresh() {
         isSleepDisabled = SystemPowerSetting.isSleepDisabled() ?? false
+        let current = currentReadiness
+        if current != readiness { readiness = current }
     }
 
     // MARK: - 守护进程注册
@@ -128,8 +135,8 @@ final class LidWakeService {
     // MARK: - XPC
 
     private func makeProxy() -> ((@escaping @Sendable (Error) -> Void) -> Any?)? {
-        guard readiness == .ready else {
-            lastError = readiness == .requiresApproval
+        guard currentReadiness == .ready else {
+            lastError = currentReadiness == .requiresApproval
                 ? "后台守护进程等待批准，请在「登录项与扩展」中允许 Screen Off"
                 : "后台守护进程尚未安装"
             return nil
@@ -139,7 +146,7 @@ final class LidWakeService {
     }
 
     private func connectedProxy() -> LidWakeHelperProtocol? {
-        guard readiness == .ready else { return nil }
+        guard currentReadiness == .ready else { return nil }
         return activeConnection().remoteObjectProxy as? LidWakeHelperProtocol
     }
 

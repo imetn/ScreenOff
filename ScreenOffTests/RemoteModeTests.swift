@@ -66,6 +66,15 @@ struct RemoteModeTests {
         try await body(defaults)
     }
 
+    @Test("台前调度原本无键时恢复成关闭，而不是只删键")
+    func stageManagerRestoreTarget() {
+        // 键缺失的等价行为是关闭。若恢复时只把键删掉，WindowManager 不会退出台前调度，
+        // 随后还会把运行中的状态写回偏好，用户看到的就是开关没有恢复。
+        #expect(RemoteModeSnapshot.StageManager(value: nil).restoreTarget == false)
+        #expect(RemoteModeSnapshot.StageManager(value: false).restoreTarget == false)
+        #expect(RemoteModeSnapshot.StageManager(value: true).restoreTarget == true)
+    }
+
     @Test("修改前保存原值，重复开启不覆盖快照，关闭后恢复缺省键")
     func transaction() async throws {
         try await withDefaults { defaults in

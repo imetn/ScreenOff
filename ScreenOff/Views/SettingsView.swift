@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import KeyboardShortcuts
 import SwiftUI
 
@@ -41,7 +42,14 @@ struct SettingsView: View {
         }
         .background(SettingsWindowSizing(maximumContentHeight: $maximumContentHeight))
         .navigationTitle("设置")
-        .onAppear { controller.refreshReadings() }
+        .onAppear {
+            controller.refreshReadings()
+            controller.refreshPermissions()
+        }
+        // 授权是在系统设置里完成的，切回本窗口时必须重新查询，否则状态会一直停在旧值。
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            controller.refreshPermissions()
+        }
     }
 
     // MARK: - 功能
@@ -222,6 +230,87 @@ struct SettingsView: View {
         }
     }
 
+    /// 权限项的状态。名称一律用系统设置里的原名，用户才知道该去哪一栏找。
+    private enum PermissionState {
+        case granted, missing, denied, pendingApproval, unsupported
+
+        var symbol: String {
+            switch self {
+            case .granted: "checkmark.circle.fill"
+            case .missing: "circle.dashed"
+            case .denied: "xmark.circle.fill"
+            case .pendingApproval: "clock.fill"
+            case .unsupported: "minus.circle"
+            }
+        }
+
+        var tint: Color {
+            switch self {
+            case .granted: .green
+            case .denied: .red
+            case .pendingApproval: .orange
+            case .missing, .unsupported: .secondary
+            }
+        }
+
+        /// 已授权与不可用没有下一步动作，只显示状态文字。
+        var actionTitle: String? {
+            switch self {
+            case .granted, .unsupported: nil
+            case .missing: "授权…"
+            case .denied: "前往设置…"
+            case .pendingApproval: "前往批准…"
+            }
+        }
+
+        var statusText: String {
+            switch self {
+            case .granted: "已授权"
+            case .unsupported: "不可用"
+            case .missing: "未授权"
+            case .denied: "已拒绝"
+            case .pendingApproval: "等待批准"
+            }
+        }
+    }
+
+    private var lidWakePermissionState: PermissionState {
+        switch controller.lidWake.readiness {
+        case .ready: .granted
+        case .requiresApproval: .pendingApproval
+        case .notRegistered: .missing
+        case .unsupported: .unsupported
+        }
+    }
+
+    private func permissionRow(
+        title: String, detail: String, state: PermissionState, action: @escaping () -> Void
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 8) {
+                Image(systemName: state.symbol)
+                    .foregroundStyle(state.tint)
+                    .accessibilityHidden(true)
+                Text(title)
+                Spacer(minLength: 8)
+                if let actionTitle = state.actionTitle {
+                    Button(actionTitle, action: action)
+                } else {
+                    Text(state.statusText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Text(detail)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, 2)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title)，\(state.statusText)。\(detail)")
+    }
+
     /// 合盖保持唤醒的前置条件说明，条件满足时不占位置。
     private var lidWakeNote: String? {
         guard controller.lidWake.isSupported else { return "当前系统不支持写入睡眠设置，合盖仍会睡眠。" }
@@ -261,22 +350,25 @@ struct SettingsView: View {
                 .help("随更新检查发送 macOS 版本、机型、CPU、内存与系统语言，用于了解版本分布。不含任何账号、输入、屏幕或远程会话信息，也不生成设备标识。")
             }
             Section {
-                LabeledContent("本机输入识别") {
-                    Text(controller.isInputMonitoringReliable ? "已授权" : "未授权")
-                        .foregroundStyle(.secondary)
-                    Button(controller.isInputMonitoringReliable ? "管理…" : "授权…") {
-                        controller.openInputMonitoringSettings()
-                    }
-                }
-                .help("使用系统的输入监控权限区分本机键鼠与远程操作；本机输入可点亮屏幕。不记录输入内容，快捷键不需要此权限。")
-                LabeledContent("关闭输入") {
-                    Text(controller.inputLock.hasAccess ? "已授权" : "未授权")
-                        .foregroundStyle(.secondary)
-                    Button(controller.inputLock.hasAccess ? "管理…" : "授权…") {
-                        controller.inputLock.openAccessibilitySettings()
-                    }
-                }
-                .help("关闭输入需要「辅助功能」权限才能拦截本机键盘与触控板；只吞掉事件，不读取按键内容。")
+                permissionRow(
+                    title: "输入监控",
+                    detail: "自动关屏靠它区分本机键鼠与远程操作。不记录输入内容，快捷键不需要它。",
+                    state: controller.isInputMonitoringDenied ? .denied
+                        : (controller.isInputMonitoringReliable ? .granted : .missing),
+                    action: { controller.openInputMonitoringSettings() }
+                )
+                permissionRow(
+                    title: "辅助功能",
+                    detail: "「关闭输入」靠它拦截本机键盘与触控板。只吞掉事件，不读取按键内容。",
+                    state: controller.inputLock.hasAccess ? .granted : .missing,
+                    action: { controller.inputLock.openAccessibilitySettings() }
+                )
+                permissionRow(
+                    title: "后台守护进程",
+                    detail: "「合盖后保持唤醒」靠它以系统身份写入睡眠设置。只做这一件事。",
+                    state: lidWakePermissionState,
+                    action: { controller.lidWake.openLoginItemsSettings() }
+                )
             }
         }
     }
