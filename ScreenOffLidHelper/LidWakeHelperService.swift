@@ -47,11 +47,16 @@ final class LidWakeHelperService: NSObject, LidWakeHelperProtocol, @unchecked Se
     }
 
     /// 连接断开就回退：App 崩溃或被强杀时，这是唯一还会执行的恢复路径。
+    ///
+    /// 恢复完必须退出，不能常驻。launchd 按 Mach service 需求会重新拉起本进程，
+    /// 那时加载的才是当前 bundle 里的可执行文件；常驻的话，App 升级后 launchd 手里
+    /// 仍是内存中的旧二进制，协议一变通信就直接失败，而用户看到的只是开关打不开。
     func clientDisconnected() {
         queue.async { [self] in
             clientCount = max(0, clientCount - 1)
             guard clientCount == 0 else { return }
             restoreDefaultLocked(reason: "客户端已断开")
+            exit(0)
         }
     }
 

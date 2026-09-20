@@ -64,6 +64,9 @@ final class ScreenOffController {
     private(set) var displayBrightness: Float = 1
     private(set) var launchAtLogin: Bool = false
     private(set) var lastError: String?
+    /// 合盖保持唤醒的失败原因，单列一个属性而不是并进 `lastError`：
+    /// `lastError` 显示在「远程」页，守护进程的问题出现在那里会让人找不着北。
+    private(set) var lidWakeError: String?
     /// 为 false 时无法区分远程注入事件，自动关屏会被远程操作打断。
     private(set) var isInputMonitoringReliable = false
     /// 用户已在系统设置中明确拒绝「输入监控」，只能引导其手动开启。
@@ -177,12 +180,13 @@ final class ScreenOffController {
     /// 合盖保持唤醒：写的是系统级 `SleepDisabled`，只在接通电源时允许开启。
     func setKeepAwakeWithLidClosed(_ enabled: Bool) {
         guard !enabled || isOnACPower else {
-            lastError = String(localized: "电池供电时不能合盖保持唤醒，请先接通电源")
+            lidWakeError = String(localized: "电池供电时不能合盖保持唤醒，请先接通电源")
             return
         }
+        lidWakeError = nil
         lidWake.refresh()
         if enabled, lidWake.readiness == .notRegistered, !lidWake.registerHelper() {
-            lastError = lidWake.lastError
+            lidWakeError = lidWake.lastError
             return
         }
         Task { await applyLidWake(enabled) }
@@ -193,10 +197,10 @@ final class ScreenOffController {
         let succeeded = await lidWake.setEnabled(enabled)
         if succeeded {
             preferences.keepAwakeWithLidClosed = enabled
-            if lastError == lidWake.lastError { lastError = nil }
+            lidWakeError = nil
         } else {
             preferences.keepAwakeWithLidClosed = lidWake.isSleepDisabled
-            if let message = lidWake.lastError { lastError = message }
+            lidWakeError = lidWake.lastError
         }
     }
 

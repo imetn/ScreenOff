@@ -74,6 +74,12 @@ struct SettingsView: View {
                 ))
                 .disabled(!controller.lidWake.isSupported || !controller.isOnACPower)
                 .help("写入系统级睡眠设置，让 Mac 合上盖子也不睡眠。需要一次性批准后台守护进程；拔掉电源、退出 App 或 App 异常结束时都会自动恢复。")
+                if let failure = controller.lidWakeError {
+                    Label(failure, systemImage: "exclamationmark.triangle")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 if let note = lidWakeNote {
                     HStack(spacing: 8) {
                         Text(note)

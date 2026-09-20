@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 | Prevent idle sleep | IOKit `PreventUserIdleSystemSleep` assertion | Public API | Release the assertion, back to system default | Verified on hardware |
 | App-controlled display idle timer | IOKit `PreventUserIdleDisplaySleep` + existing physical idle timer | Public API | Release when automatic dimming, remote mode and dim session are all off | Independent acquisition/release verified on hardware |
-| Keep awake with lid closed | System-level `SleepDisabled` written by a signed privileged daemon registered through `SMAppService` | Needs one-time approval in Login Items & Extensions; AC power required | Refuse on battery; revert on unplug, on quit, on launch reconciliation, and when the daemon loses its last client | Builds, signs and reaches the approval prompt; approval and the closed-lid run remain outstanding |
+| Keep awake with lid closed | System-level `SleepDisabled` written by a signed privileged daemon registered through `SMAppService` | Needs one-time approval in Login Items & Extensions; AC power required | Refuse on battery; revert on unplug, on quit, on launch reconciliation, and when the daemon loses its last client | Registration, approval, enabling, and automatic revert both on quit and on `SIGKILL` verified on the test MacBook (2026-09-21); the closed-lid run itself and the revert on unplug remain outstanding |
 | Remote display scaling | CoreGraphics display modes + driver default flag | Public API, built-in display | Reject unidentified defaults, mirroring, unavailable original modes; retain recovery journal | Switch, exit, quit and abnormal-restart restoration verified on the test MacBook |
 | Remote Dock settings | Dynamically resolved CoreDock SPI in HIServices | Private API; direct distribution | Capture first, verify readback, roll back failures | Visibility, size and restoration verified on hardware |
 | Remote Stage Manager | `com.apple.WindowManager` / `GloballyEnabled` through CFPreferences | Undocumented preference; separate display Spaces required | Probe availability/type/managed policy, restore key absence, verify readback | Both switch states and restoration verified in System Settings on the test host |
@@ -149,6 +149,10 @@ compatibility checks, particularly for the undocumented Dock and Stage Manager a
   disconnects, when launchd stops it, and when the power is unplugged. No other helper, no arbitrary
   shell commands. It also produces no user-facing text: it replies with the raw `IOReturn` and the app
   turns that code into a localized message, because the daemon bundle carries no localized resources.
+- The daemon exits once its last client disconnects, rather than staying resident. launchd keeps a
+  resident daemon process across an app update, so a resident daemon would still be the previous
+  build's executable — and would keep answering the new app over the previous build's XPC signature.
+  Exiting means the next connection is served by whatever is in the bundle now.
 - The input lock must never outlive the process: it exists only as a live event tap, is released on
   quit, and is re-enabled immediately whenever the system disables it.
 - While input is locked, the unlock gesture stays on screen by default. The hint can be switched off in

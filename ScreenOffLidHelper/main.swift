@@ -1,6 +1,7 @@
 import Foundation
 
-// launchd 按 Mach service 需求拉起本进程；没有客户端时由 launchd 决定何时回收。
+// launchd 按 Mach service 需求拉起本进程；最后一个客户端断开时本进程主动退出，
+// 这样 App 升级后下一次连接拿到的一定是新 bundle 里的可执行文件。
 let service = LidWakeHelperService()
 let delegate = LidWakeListenerDelegate(service: service)
 

@@ -25,6 +25,8 @@ final class LidWakeService {
     private(set) var lastError: String?
 
     @ObservationIgnored private var connection: NSXPCConnection?
+    /// 每次运行只重装一次守护进程，避免在真正的故障上反复注销注册。
+    @ObservationIgnored private var didAttemptReinstall = false
     @ObservationIgnored private let log = Logger(subsystem: AppLog.subsystem, category: "lid-wake")
 
     private var service: SMAppService { SMAppService.daemon(plistName: LidWakeHelper.plistName) }
@@ -99,29 +101,60 @@ final class LidWakeService {
             refresh()
             return true
         }
-        guard let proxy = makeProxy() else { return false }
 
-        let outcome: (Bool, String?) = await withCheckedContinuation { continuation in
-            let box = ReplyBox(continuation: continuation)
-            let handler = proxy(box.errorHandler)
-            guard let helper = handler as? LidWakeHelperProtocol else {
-                box.finish((false, String(localized: "守护进程接口不可用")))
-                return
-            }
-            helper.setSleepDisabled(enabled) { success, code in
-                // helper 进程没有本地化资源，文案一律在 App 侧按回传的 IOReturn 生成。
-                box.finish((success, success ? nil : SystemPowerSetting.describe(code)))
+        var outcome = await send(enabled)
+        // launchd 不会因为 App 升级就换掉已在运行的 daemon 进程：它手里还是旧的可执行
+        // 文件，说的也是旧协议。重新注册会先让旧进程收到 SIGTERM 恢复默认再退出，
+        // 之后拉起的才是当前 bundle 里的版本。每次运行只自愈一次，避免反复打扰用户。
+        if outcome.communicationFailed, !didAttemptReinstall {
+            didAttemptReinstall = true
+            log.notice("守护进程通信失败，重新注册后重试")
+            if await reinstallHelper() {
+                outcome = await send(enabled)
             }
         }
 
         refresh()
-        if outcome.0 {
+        if outcome.succeeded {
             lastError = nil
         } else {
-            lastError = outcome.1 ?? String(localized: "写入系统睡眠设置失败")
+            lastError = outcome.message ?? String(localized: "写入系统睡眠设置失败")
             log.error("设置合盖保持唤醒失败 \(self.lastError ?? "", privacy: .public)")
         }
-        return outcome.0 && isSleepDisabled == enabled
+        return outcome.succeeded && isSleepDisabled == enabled
+    }
+
+    private func send(_ enabled: Bool) async -> Outcome {
+        guard let proxy = makeProxy() else {
+            return Outcome(message: lastError)
+        }
+        return await withCheckedContinuation { continuation in
+            let box = ReplyBox(continuation: continuation)
+            let handler = proxy(box.errorHandler)
+            guard let helper = handler as? LidWakeHelperProtocol else {
+                box.finish(Outcome(message: String(localized: "守护进程接口不可用"), communicationFailed: true))
+                return
+            }
+            helper.setSleepDisabled(enabled) { success, code in
+                // helper 进程没有本地化资源，文案一律在 App 侧按回传的 IOReturn 生成。
+                box.finish(Outcome(
+                    succeeded: success,
+                    message: success ? nil : SystemPowerSetting.describe(code)
+                ))
+            }
+        }
+    }
+
+    /// 注销再注册。注销让 launchd 回收旧进程，注册后系统通常会重新要求批准，
+    /// 界面随后显示「等待批准」——这比一个永远打不开的开关清楚得多。
+    private func reinstallHelper() async -> Bool {
+        disconnect()
+        try? await service.unregister()
+        // 注销后 launchd 要一点时间回收旧进程，立刻注册可能又连回同一个实例。
+        try? await Task.sleep(for: .milliseconds(400))
+        let ok = registerHelper()
+        refresh()
+        return ok
     }
 
     /// 退出路径：先还原系统设置，再断开连接。断开本身也会触发 helper 兜底还原。
@@ -174,21 +207,34 @@ final class LidWakeService {
     }
 }
 
+/// 一次写入尝试的结果。要区分「系统拒绝写入」和「根本没说上话」：
+/// 后者往往是 launchd 还占着旧版本的 daemon，重新注册就能修好。
+private struct Outcome {
+    var succeeded = false
+    var message: String?
+    var communicationFailed = false
+}
+
 /// XPC 的错误回调与正常回复只会有一个先到，但两者都可能到；这里保证 continuation 只恢复一次。
 private final class ReplyBox: @unchecked Sendable {
-    private let continuation: CheckedContinuation<(Bool, String?), Never>
+    private let continuation: CheckedContinuation<Outcome, Never>
     private let lock = NSLock()
     private var finished = false
 
-    init(continuation: CheckedContinuation<(Bool, String?), Never>) {
+    init(continuation: CheckedContinuation<Outcome, Never>) {
         self.continuation = continuation
     }
 
     var errorHandler: @Sendable (Error) -> Void {
-        { [self] error in finish((false, String(localized: "守护进程通信失败：\(error.localizedDescription)"))) }
+        { [self] error in
+            finish(Outcome(
+                message: String(localized: "守护进程通信失败：\(error.localizedDescription)"),
+                communicationFailed: true
+            ))
+        }
     }
 
-    func finish(_ value: (Bool, String?)) {
+    func finish(_ value: Outcome) {
         lock.lock()
         defer { lock.unlock() }
         guard !finished else { return }
