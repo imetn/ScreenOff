@@ -2,6 +2,7 @@ name: ScreenOff
 
 options:
   createIntermediateGroups: true
+  developmentLanguage: zh-Hans
   deploymentTarget:
     macOS: "14.0"
 
@@ -37,6 +38,8 @@ targets:
         CFBundleIconName: AppIcon
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        CFBundleDevelopmentRegion: zh-Hans
+        CFBundleLocalizations: [en, zh-Hans, ja]
         LSApplicationCategoryType: public.app-category.utilities
         LSUIElement: true
         NSHumanReadableCopyright: "© 2026 Hangzhou FrameFlow Information Technology Services Co., Ltd."

@@ -15,8 +15,9 @@ enum LidWakeHelper {
 }
 
 @objc protocol LidWakeHelperProtocol {
-    /// 写入 `SleepDisabled`。`message` 在失败时说明原因，成功时为 nil。
-    func setSleepDisabled(_ disabled: Bool, reply: @escaping @Sendable (Bool, String?) -> Void)
+    /// 写入 `SleepDisabled`。失败时回传原始 IOReturn，由 App 侧译成用户语言——
+    /// helper 是独立进程，bundle 里没有本地化资源，在它那边生成的文案永远是中文。
+    func setSleepDisabled(_ disabled: Bool, reply: @escaping @Sendable (Bool, Int32) -> Void)
 
     /// 健康检查：确认 helper 已就绪且具备写入能力。
     func status(reply: @escaping @Sendable (Bool, Bool) -> Void)

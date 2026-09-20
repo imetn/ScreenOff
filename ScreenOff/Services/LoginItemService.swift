@@ -33,11 +33,11 @@ enum LoginItemService {
 
     static var statusDescription: String {
         switch SMAppService.mainApp.status {
-        case .enabled: "已开启"
-        case .notRegistered: "未开启"
-        case .notFound: "登录项不可用"
-        case .requiresApproval: "需在系统设置中批准"
-        @unknown default: "状态未知"
+        case .enabled: String(localized: "已开启")
+        case .notRegistered: String(localized: "未开启")
+        case .notFound: String(localized: "登录项不可用")
+        case .requiresApproval: String(localized: "需在系统设置中批准")
+        @unknown default: String(localized: "状态未知")
         }
     }
 }

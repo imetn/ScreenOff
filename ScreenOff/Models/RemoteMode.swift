@@ -5,7 +5,7 @@ struct RemoteModeConfiguration: Codable, Equatable, Sendable {
     enum SwitchSetting: String, Codable, CaseIterable {
         case unchanged, enabled, disabled
         var title: String {
-            switch self { case .unchanged: "保持原样"; case .enabled: "开启"; case .disabled: "关闭" }
+            switch self { case .unchanged: String(localized: "保持原样"); case .enabled: String(localized: "开启"); case .disabled: String(localized: "关闭") }
         }
     }
     var defaultDisplayMode = true
@@ -21,9 +21,9 @@ struct RemoteModeConfiguration: Codable, Equatable, Sendable {
 
         var title: String {
             switch self {
-            case .unchanged: "保持原样"
-            case .display: "仅屏幕"
-            case .displayAndKeyboard: "屏幕和键盘"
+            case .unchanged: String(localized: "保持原样")
+            case .display: String(localized: "仅屏幕")
+            case .displayAndKeyboard: String(localized: "屏幕和键盘")
             }
         }
     }
@@ -142,7 +142,7 @@ final class RemoteModeSession {
             state = .recoveryRequired
             if snapshot?.version != 1 {
                 snapshot = nil
-                error = "远程模式恢复记录无法读取，请保留记录并联系支持。"
+                error = String(localized: "远程模式恢复记录无法读取，请保留记录并联系支持。")
             }
         }
     }
@@ -179,14 +179,14 @@ final class RemoteModeSession {
     private func restoreSnapshot() async {
         guard let snapshot else {
             state = .recoveryRequired
-            error = "恢复记录无法读取，已停止修改系统设置。"
+            error = String(localized: "恢复记录无法读取，已停止修改系统设置。")
             return
         }
         let result = await environment.restore(snapshot)
         do {
             if result.remaining.isEmpty {
                 defaults.removeObject(forKey: Self.snapshotKey)
-                guard defaults.synchronize() else { throw RemoteModeError.unavailable("无法保存恢复状态") }
+                guard defaults.synchronize() else { throw RemoteModeError.unavailable(String(localized: "无法保存恢复状态")) }
                 self.snapshot = nil
                 state = .inactive
             } else {
@@ -204,7 +204,7 @@ final class RemoteModeSession {
     private func persist(_ snapshot: RemoteModeSnapshot) throws {
         defaults.set(try JSONEncoder().encode(snapshot), forKey: Self.snapshotKey)
         guard defaults.synchronize() else {
-            throw RemoteModeError.unavailable("无法保存原设置，未开启远程模式")
+            throw RemoteModeError.unavailable(String(localized: "无法保存原设置，未开启远程模式"))
         }
     }
 }

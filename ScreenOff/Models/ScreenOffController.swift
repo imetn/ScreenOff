@@ -26,6 +26,8 @@ final class ScreenOffController {
     @ObservationIgnored private var remoteTask: Task<Void, Never>?
     @ObservationIgnored private var remoteOwnsDimSession = false
     @ObservationIgnored private var shuttingDown = false
+    /// 断言失败的提示由 syncAssertions 自己清除，不依赖文案内容。
+    @ObservationIgnored private var assertionErrorPresented = false
 
     @ObservationIgnored private let power = PowerAssertionService()
     @ObservationIgnored private let display = DisplayBrightnessService()
@@ -175,7 +177,7 @@ final class ScreenOffController {
     /// 合盖保持唤醒：写的是系统级 `SleepDisabled`，只在接通电源时允许开启。
     func setKeepAwakeWithLidClosed(_ enabled: Bool) {
         guard !enabled || isOnACPower else {
-            lastError = "电池供电时不能合盖保持唤醒，请先接通电源"
+            lastError = String(localized: "电池供电时不能合盖保持唤醒，请先接通电源")
             return
         }
         lidWake.refresh()
@@ -204,7 +206,7 @@ final class ScreenOffController {
         if remoteMode.isActive || remoteMode.needsRecovery { restoreRemoteMode(); return }
         let configuration = preferences.remoteModeConfiguration.validated
         if configuration.dimDisplay, !canControlDisplay {
-            lastError = "当前无法调节内建屏幕，请关闭远程模式中的背光选项后重试。"
+            lastError = String(localized: "当前无法调节内建屏幕，请关闭远程模式中的背光选项后重试。")
             return
         }
         if configuration.dimDisplay { syncInputMonitoring(requestAccess: true) }
@@ -224,7 +226,7 @@ final class ScreenOffController {
                 if remoteOwnsDimSession {
                     enterDimSession(manual: true, keyboardOverride: configuration.dimKeyboard)
                     if !isSessionActive {
-                        let failure = lastError ?? "关闭屏幕背光失败"
+                        let failure = lastError ?? String(localized: "关闭屏幕背光失败")
                         await remoteMode.deactivate()
                         remoteOwnsDimSession = false
                         lastError = failure
@@ -395,10 +397,10 @@ final class ScreenOffController {
         switch LoginItemService.setEnabled(enabled) {
         case .success(let actual):
             launchAtLogin = actual
-            lastError = actual == enabled ? nil : "登录项：\(LoginItemService.statusDescription)"
+            lastError = actual == enabled ? nil : String(localized: "登录项：\(LoginItemService.statusDescription)")
         case .failure(let error):
             launchAtLogin = LoginItemService.isEnabled
-            lastError = "登录项设置失败：\(error.localizedDescription)"
+            lastError = String(localized: "登录项设置失败：\(error.localizedDescription)")
         }
     }
 
@@ -414,7 +416,7 @@ final class ScreenOffController {
 
         guard display.setBrightness(clamped) else {
             if createdSnapshot { preferences.pendingDisplayBrightness = nil }
-            lastError = "无法调整屏幕亮度"
+            lastError = String(localized: "无法调整屏幕亮度")
             return
         }
 
@@ -479,7 +481,7 @@ final class ScreenOffController {
             && preferences.pendingKeyboardBrightness == nil
             && keyboard.isAvailable
         guard dimDisplay || dimKeyboard else {
-            if manual { lastError = "当前设备不支持调节内建屏幕亮度" }
+            if manual { lastError = String(localized: "当前设备不支持调节内建屏幕亮度") }
             return
         }
 
@@ -487,7 +489,7 @@ final class ScreenOffController {
 
         if dimDisplay {
             guard let current = display.brightness() else {
-                lastError = "读取屏幕亮度失败，未做任何修改"
+                lastError = String(localized: "读取屏幕亮度失败，未做任何修改")
                 return
             }
             displayBrightness = current
@@ -501,13 +503,13 @@ final class ScreenOffController {
                 displayBrightness = display.brightness() ?? 0
                 guard Self.isDark(displayBrightness) else {
                     if createdSnapshot { preferences.pendingDisplayBrightness = nil }
-                    lastError = "屏幕亮度未降至 0"
+                    lastError = String(localized: "屏幕亮度未降至 0")
                     return
                 }
                 didChange = true
             } else {
                 if createdSnapshot { preferences.pendingDisplayBrightness = nil }
-                lastError = "无法关闭屏幕背光"
+                lastError = String(localized: "无法关闭屏幕背光")
                 return
             }
         }
@@ -537,12 +539,12 @@ final class ScreenOffController {
         if screenState == .off {
             let target = wakeBrightness(preferred: preferences.pendingDisplayBrightness)
             guard display.setBrightness(target) else {
-                lastError = "无法点亮屏幕"
+                lastError = String(localized: "无法点亮屏幕")
                 return
             }
             displayBrightness = display.brightness() ?? target
             guard !Self.isDark(displayBrightness) else {
-                lastError = "屏幕亮度仍为 0，未能点亮屏幕"
+                lastError = String(localized: "屏幕亮度仍为 0，未能点亮屏幕")
                 return
             }
             lastLitDisplayBrightness = displayBrightness
@@ -594,9 +596,12 @@ final class ScreenOffController {
         let idleOK = power.set(.idle, active: policy.preventSystemIdleSleep)
         let displayOK = power.set(.display, active: policy.preventDisplayIdleSleep)
         if !idleOK || !displayOK {
-            lastError = "未能接管系统空闲计时，请重试；当前可能仍按系统设置睡眠。"
-        } else if lastError?.hasPrefix("未能接管系统空闲计时") == true {
+            lastError = String(localized: "未能接管系统空闲计时，请重试；当前可能仍按系统设置睡眠。")
+            assertionErrorPresented = true
+        } else if assertionErrorPresented {
+            // 用标志位而不是比对文案：文案本地化后前缀匹配必然失效，提示会永远留在界面上。
             lastError = nil
+            assertionErrorPresented = false
         }
         return idleOK && displayOK
     }
@@ -607,7 +612,7 @@ final class ScreenOffController {
             isOnACPower = isOnAC
             // 拔掉电源立即回退：合盖不睡会在包里持续发热并耗尽电池。
             if !isOnAC, preferences.keepAwakeWithLidClosed {
-                lastError = "已拔掉电源，合盖保持唤醒已关闭"
+                lastError = String(localized: "已拔掉电源，合盖保持唤醒已关闭")
                 Task { await applyLidWake(false) }
             }
             syncAssertions()

@@ -115,22 +115,28 @@ struct InputLockOverlayView: View {
 
     private var title: String {
         switch stage {
-        case .locked: "输入已关闭"
-        case .holding: "正在解锁"
-        case .readyToRelease: "松开按键即可解锁"
-        case .restored: "输入已恢复"
+        case .locked: String(localized: "输入已关闭")
+        case .holding: String(localized: "正在解锁")
+        case .readyToRelease: String(localized: "松开按键即可解锁")
+        case .restored: String(localized: "输入已恢复")
         }
     }
 
     private var subtitle: String {
-        stage == .restored ? "键盘与触控板可正常使用" : "键盘与触控板已锁定"
+        stage == .restored ? String(localized: "键盘与触控板可正常使用") : String(localized: "键盘与触控板已锁定")
+    }
+
+    private func heldSeconds(_ progress: Double) -> String {
+        let held = String(format: "%.1f", progress * InputLockService.holdDuration)
+        return String(localized: "继续按住 · \(held) / 1 秒")
     }
 
     private var hint: String {
         switch stage {
-        case .locked: "按住 Fn + Delete 1 秒解锁"
-        case .holding(let value): String(format: "继续按住 · %.1f / 1 秒", value * InputLockService.holdDuration)
-        case .readyToRelease, .restored: "已按住 1 秒"
+        case .locked: String(localized: "按住 Fn + Delete 1 秒解锁")
+        case .holding(let value):
+            heldSeconds(value)
+        case .readyToRelease, .restored: String(localized: "已按住 1 秒")
         }
     }
 }

@@ -83,10 +83,45 @@ CI and unit tests only prove that the project compiles and that pure logic is co
 keyboard, power, lid, and permission behavior must each be verified on a real MacBook; a green build
 or test run is not a substitute.
 
+## Localization
+
+The app ships Simplified Chinese, English and Japanese. Chinese is the development region and the
+Chinese source text is itself the key: `zh-Hans.lproj/Localizable.strings` maps each key to itself,
+while `en.lproj` and `ja.lproj` carry the translations.
+
+Two consequences are easy to violate silently, and both have shipped untranslated strings before:
+
+- SwiftUI looks a literal up automatically only where the parameter is a `LocalizedStringKey` — `Text`,
+  `Label`, `Button`, `Toggle`, `Picker`, `LabeledContent`, `.help`, `.accessibilityLabel` and the like.
+  A Chinese literal passed as a plain `String` argument, assigned to a `String` property, or sitting in
+  the second branch of a ternary whose first branch is already wrapped, is never looked up and stays
+  Chinese in every language. Those need `String(localized:)`.
+- The privileged daemon is a separate process with no localized resources, so it must never produce
+  user-facing text. `setSleepDisabled` replies with the raw `IOReturn` and the app turns that code into
+  a message on its own side.
+
+Interpolation in a key becomes `%@`, so `"\(title)快捷键"` is stored as `"%@快捷键"` and the interpolated
+argument must already be localized when it is passed in. Convert numbers to `String` first: an integer
+interpolated directly produces a `"%lld 分钟"` key, which never matches the `"%@ 分钟"` entry in the
+table, so the string renders in Chinese in every language.
+
+Before shipping a change that touches user-facing text, confirm that every key in the source exists in
+all three tables and that the `%@` count matches on both sides. Scan for any non-ASCII character rather
+than for Chinese characters: keys such as `" · Retina"`, `"%@：%@"` and `"%@，%@。%@"` consist only of
+punctuation and an interpunct, and scanning for Chinese misses that whole group.
+
+Language names in the picker stay in their own script — English, 简体中文, 日本語 — so nobody has to
+read the current interface language to find their own. Switching writes the `AppleLanguages` user
+default and takes effect on restart; `AppLanguage.restart()` relaunches through the normal quit path so
+brightness, input lock and lid settings are restored first.
+
 ## Settings Layout Verification
 
-The four native toolbar tabs use a shared 332 pt content height (520 × 420 pt including the current
-system toolbar), capped by the current screen's available height. Feature settings retain the discrete
+The four native toolbar tabs are ordered Remote, Feature, General, About: remote work is the main
+scenario for this Mac, so that tab comes first. The window is a fixed 520 pt wide, but each tab takes
+its own intrinsic height instead of a shared one — the four pages differ too much in content, and one
+shared height either leaves About mostly empty or squeezes General into a scroll view. The current
+screen's available height still caps it, and the form scrolls internally beyond that. Feature settings retain the discrete
 idle-delay slider and a separate brightness/manual-screen control. Remote configuration uses six
 separate native rows. The Dock-size switch and labeled 244 pt size slider are distinct settings,
 with a standard row separator between them and a percentage beside the slider. The primary remote action
@@ -98,8 +133,8 @@ fractional scroll range. Native forms and the About scroll view retain their nor
 system scroll-indicator behavior. Verify all four tabs and repeated notice appearance/removal in
 a native Settings scene; a passing build alone does not prove the scrollbar behavior.
 
-The shared grouped form hides its scroll-content background. Its 448 pt scroll view extends
-under the 520 pt titlebar; drawing that narrower background produces a rectangular material
+The shared grouped form hides its scroll-content background. Its scroll view extends
+under the titlebar; drawing a narrower background produces a rectangular material
 boundary when the window becomes active. The window owns the background instead, while the
 native tab selection effect and grouped-row backgrounds remain unchanged. Also clip the form to
 its SwiftUI content bounds: the native scroll-pocket material can still extend into the titlebar
@@ -110,13 +145,31 @@ alongside the fractional-height regression above.
 General settings provide independent screen-off and remote-mode shortcut recorders. The existing
 screen-off preference key is preserved; the remote shortcut is unassigned by default. Both reject
 system/menu conflicts and a key used by the other action. Recording suspends hotkeys, and a complete
-press/release pair is required after recording before either action fires. Input Monitoring is a
-separate permission for physical-input recognition; it is not required to register these shortcuts.
+press/release pair is required after recording before either action fires. Clicking a recorder clears
+its current shortcut and waits for a new one; Esc, or a click elsewhere, leaves it unset. Changing and
+removing a shortcut are therefore the same gesture, and the field carries no separate clear button.
+Input Monitoring is a separate permission for physical-input recognition; it is not required to
+register these shortcuts.
 
-The 320 pt menu popover opens with remote-mode status and an explicit start/restore button. Screen
-brightness and the manual off/on button share one control group, followed by an automatic-screen-off
-switch with a native idle-duration picker, keep-awake, and Settings/Quit. The duration picker uses the
-same discrete values as Settings and is disabled when automatic screen-off is off. Remote-desktop
+The General tab lists a permission only when the feature that needs it is in use and the permission is
+not in place. Input Monitoring appears only while automatic screen off is on, and the lid-wake daemon
+only while keep-awake-with-lid-closed is on and the system supports the setting. Accessibility is judged
+on the permission alone, because Lock Input has no switch and can be triggered from the menu bar at any
+time, and because macOS presents its authorization prompt only once — a user who declined it would
+otherwise have no way back. Listing a permission that nothing currently needs reads as a fault report
+rather than as information. When nothing is pending, one line states that all required permissions are
+granted and carries the three individual states in its tooltip, so a permission revoked in System
+Settings stays discoverable. Each pending row keeps one short sentence on what the permission is for;
+the boundary statement — what it can and cannot see — lives in the tooltip.
+
+The 320 pt menu popover leads with the two mode actions, Remote Mode and Lock Input, as prominent
+buttons that turn filled while active. A divider separates them from the persistent-state rows: a
+display toggle and a stay-awake row. The display row is labelled "Display" rather than "Turn Off
+Display" — a toggle beside an action label reads ambiguously, because "on" would name neither the
+screen nor the feature. Automatic screen off follows, with a native idle-duration picker, then Settings
+and Quit. Settings carries no ellipsis: it opens a window rather than asking for further input. The
+duration picker uses the same discrete values as Settings and is disabled when automatic screen-off is
+off. Remote-desktop
 configuration remains in Settings. While remote mode owns wakefulness, its effective status is shown
 instead of a misleading independent toggle. Both surfaces use the controller's serialized remote action.
 

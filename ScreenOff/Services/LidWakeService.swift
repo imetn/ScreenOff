@@ -67,7 +67,7 @@ final class LidWakeService {
                 lastError = nil
                 return true
             }
-            lastError = "无法注册后台守护进程：\(error.localizedDescription)"
+            lastError = String(localized: "无法注册后台守护进程：\(error.localizedDescription)")
             log.error("注册守护进程失败 \(error.localizedDescription, privacy: .public)")
             return false
         }
@@ -91,7 +91,7 @@ final class LidWakeService {
     @discardableResult
     func setEnabled(_ enabled: Bool) async -> Bool {
         guard isSupported else {
-            lastError = "当前系统不支持合盖保持唤醒"
+            lastError = String(localized: "当前系统不支持合盖保持唤醒")
             return false
         }
         // 关闭时即使 helper 已不可用也要把状态对齐，避免界面显示与系统不一致。
@@ -105,11 +105,12 @@ final class LidWakeService {
             let box = ReplyBox(continuation: continuation)
             let handler = proxy(box.errorHandler)
             guard let helper = handler as? LidWakeHelperProtocol else {
-                box.finish((false, "守护进程接口不可用"))
+                box.finish((false, String(localized: "守护进程接口不可用")))
                 return
             }
-            helper.setSleepDisabled(enabled) { success, message in
-                box.finish((success, message))
+            helper.setSleepDisabled(enabled) { success, code in
+                // helper 进程没有本地化资源，文案一律在 App 侧按回传的 IOReturn 生成。
+                box.finish((success, success ? nil : SystemPowerSetting.describe(code)))
             }
         }
 
@@ -117,7 +118,7 @@ final class LidWakeService {
         if outcome.0 {
             lastError = nil
         } else {
-            lastError = outcome.1 ?? "写入系统睡眠设置失败"
+            lastError = outcome.1 ?? String(localized: "写入系统睡眠设置失败")
             log.error("设置合盖保持唤醒失败 \(self.lastError ?? "", privacy: .public)")
         }
         return outcome.0 && isSleepDisabled == enabled
@@ -137,8 +138,8 @@ final class LidWakeService {
     private func makeProxy() -> ((@escaping @Sendable (Error) -> Void) -> Any?)? {
         guard currentReadiness == .ready else {
             lastError = currentReadiness == .requiresApproval
-                ? "后台守护进程等待批准，请在「登录项与扩展」中允许 Screen Off"
-                : "后台守护进程尚未安装"
+                ? String(localized: "后台守护进程等待批准，请在「登录项与扩展」中允许 Screen Off")
+                : String(localized: "后台守护进程尚未安装")
             return nil
         }
         let connection = activeConnection()
@@ -184,7 +185,7 @@ private final class ReplyBox: @unchecked Sendable {
     }
 
     var errorHandler: @Sendable (Error) -> Void {
-        { [self] error in finish((false, "守护进程通信失败：\(error.localizedDescription)")) }
+        { [self] error in finish((false, String(localized: "守护进程通信失败：\(error.localizedDescription)"))) }
     }
 
     func finish(_ value: (Bool, String?)) {

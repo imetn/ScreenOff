@@ -74,7 +74,7 @@ final class InputLockService {
         restoredTask?.cancel()
         restoredTask = nil
         guard refreshAccess() else {
-            lastError = "未取得「辅助功能」权限，无法关闭输入"
+            lastError = String(localized: "未取得「辅助功能」权限，无法关闭输入")
             requestAccess()
             log.notice("关闭输入被拒：缺少辅助功能授权")
             return false
@@ -105,7 +105,7 @@ final class InputLockService {
             callback: inputLockTapCallback,
             userInfo: context
         ) else {
-            lastError = "系统拒绝创建事件拦截，关闭输入不可用"
+            lastError = String(localized: "系统拒绝创建事件拦截，关闭输入不可用")
             log.error("CGEvent.tapCreate 失败")
             return false
         }

@@ -18,9 +18,10 @@ final class RemoteDesktopService: RemoteModeEnvironment {
     static func defaultDisplayDescription() -> String {
         guard let display = builtinDisplay(),
               let target = RemoteDisplayMode.recommended(in: modes(display).map(describe)) else {
-            return "未检测到可用的内建显示器默认模式"
+            return String(localized: "未检测到可用的内建显示器默认模式")
         }
-        return "按当前内建显示器识别：\(target.title)\(target.isHiDPI ? " · Retina" : "")"
+        let retina = target.isHiDPI ? String(localized: " · Retina") : ""
+        return String(localized: "按当前内建显示器识别：\(target.title)\(retina)")
     }
 
     func capture(_ configuration: RemoteModeConfiguration) async throws -> RemoteModeSnapshot {
@@ -30,7 +31,7 @@ final class RemoteDesktopService: RemoteModeEnvironment {
                   let current = CGDisplayCopyDisplayMode(display),
                   let uuid = CGDisplayCreateUUIDFromDisplayID(display)?.takeRetainedValue(),
                   let target = RemoteDisplayMode.recommended(in: Self.modes(display).map(Self.describe)) else {
-                throw RemoteModeError.unavailable("无法识别内建显示器默认模式，或正在镜像显示。请在远程模式设置中关闭默认缩放后重试。")
+                throw RemoteModeError.unavailable(String(localized: "无法识别内建显示器默认模式，或正在镜像显示。请在远程模式设置中关闭默认缩放后重试。"))
             }
             result.display = .init(uuid: CFUUIDCreateString(nil, uuid) as String,
                                    original: Self.describe(current), target: target)
@@ -41,13 +42,13 @@ final class RemoteDesktopService: RemoteModeEnvironment {
                                 size: configuration.resizeDock ? dock.size : nil)
         }
         if configuration.stageManager != .unchanged {
-            guard Self.stageManagerAvailable else { throw RemoteModeError.unavailable("当前系统不支持台前调度") }
+            guard Self.stageManagerAvailable else { throw RemoteModeError.unavailable(String(localized: "当前系统不支持台前调度")) }
             guard !CFPreferencesAppValueIsForced(Self.stageKey, Self.stageDomain) else {
-                throw RemoteModeError.unavailable("台前调度由设备管理策略控制")
+                throw RemoteModeError.unavailable(String(localized: "台前调度由设备管理策略控制"))
             }
             if configuration.stageManager == .enabled,
                CFPreferencesCopyAppValue("spans-displays" as CFString, "com.apple.spaces" as CFString) as? Bool == true {
-                throw RemoteModeError.unavailable("台前调度需要先在系统设置中开启「显示器具有单独的空间」并重新登录。")
+                throw RemoteModeError.unavailable(String(localized: "台前调度需要先在系统设置中开启「显示器具有单独的空间」并重新登录。"))
             }
             result.stageManager = .init(value: try Self.readStageManager())
         }
@@ -79,7 +80,7 @@ final class RemoteDesktopService: RemoteModeEnvironment {
                 remaining.stageManager = nil
                 Self.log.notice("台前调度恢复为 \(target, privacy: .public)，原值存在=\(stage.value != nil, privacy: .public)")
             } catch {
-                errors.append("台前调度恢复失败：\(error.localizedDescription)")
+                errors.append(String(localized: "台前调度恢复失败：\(error.localizedDescription)"))
                 Self.log.error("台前调度恢复失败 \(error.localizedDescription, privacy: .public)")
             }
         }
@@ -89,7 +90,7 @@ final class RemoteDesktopService: RemoteModeEnvironment {
                 remaining.dock = nil
                 Self.log.notice("Dock 已恢复")
             } catch {
-                errors.append("Dock 恢复失败：\(error.localizedDescription)")
+                errors.append(String(localized: "Dock 恢复失败：\(error.localizedDescription)"))
                 Self.log.error("Dock 恢复失败 \(error.localizedDescription, privacy: .public)")
             }
         }
@@ -99,7 +100,7 @@ final class RemoteDesktopService: RemoteModeEnvironment {
                 remaining.display = nil
                 Self.log.notice("显示模式恢复为 \(display.original.title, privacy: .public) id=\(display.original.modeID, privacy: .public)")
             } catch {
-                errors.append("显示缩放恢复失败：\(error.localizedDescription)")
+                errors.append(String(localized: "显示缩放恢复失败：\(error.localizedDescription)"))
                 Self.log.error("显示模式恢复失败 \(error.localizedDescription, privacy: .public)")
             }
         }
@@ -128,31 +129,31 @@ final class RemoteDesktopService: RemoteModeEnvironment {
 
     private static func setDisplay(_ uuidString: String, mode requested: RemoteDisplayMode) throws {
         guard let uuid = CFUUIDCreateFromString(nil, uuidString as CFString) else {
-            throw RemoteModeError.unavailable("显示器标识无效")
+            throw RemoteModeError.unavailable(String(localized: "显示器标识无效"))
         }
         let id = CGDisplayGetDisplayIDFromUUID(uuid)
         guard id != kCGNullDirectDisplay, CGDisplayIsOnline(id) != 0, CGDisplayIsInMirrorSet(id) == 0 else {
-            throw RemoteModeError.unavailable("原显示器未连接或处于镜像模式，请恢复连接后重试")
+            throw RemoteModeError.unavailable(String(localized: "原显示器未连接或处于镜像模式，请恢复连接后重试"))
         }
         if let current = CGDisplayCopyDisplayMode(id), requested.matches(describe(current)) { return }
         let matches = modes(id).filter { requested.matches(describe($0)) }
         guard let mode = matches.first(where: { $0.ioDisplayModeID == requested.modeID }) ?? matches.first else {
-            throw RemoteModeError.unavailable("原显示模式暂不可用，已保留恢复记录")
+            throw RemoteModeError.unavailable(String(localized: "原显示模式暂不可用，已保留恢复记录"))
         }
         // App-only mode changes are undone again by WindowServer when this process exits.
         // A session configuration lets the restored original survive normal quit without
         // overwriting the user's permanent display configuration.
         var configuration: CGDisplayConfigRef?
         guard CGBeginDisplayConfiguration(&configuration) == .success, let configuration else {
-            throw RemoteModeError.unavailable("无法开始显示器配置")
+            throw RemoteModeError.unavailable(String(localized: "无法开始显示器配置"))
         }
         guard CGConfigureDisplayWithDisplayMode(configuration, id, mode, nil) == .success else {
             CGCancelDisplayConfiguration(configuration)
-            throw RemoteModeError.unavailable("系统不支持请求的显示模式")
+            throw RemoteModeError.unavailable(String(localized: "系统不支持请求的显示模式"))
         }
         guard CGCompleteDisplayConfiguration(configuration, .forSession) == .success,
               let actual = CGDisplayCopyDisplayMode(id), requested.matches(describe(actual)) else {
-            throw RemoteModeError.unavailable("系统未应用请求的显示模式")
+            throw RemoteModeError.unavailable(String(localized: "系统未应用请求的显示模式"))
         }
     }
 
@@ -180,20 +181,20 @@ final class RemoteDesktopService: RemoteModeEnvironment {
     static var dockAvailable: Bool { dockAPI != nil }
 
     private static func readDock() async throws -> (autohide: Bool, size: Double) {
-        guard let api = dockAPI else { throw RemoteModeError.unavailable("当前系统的 Dock 控制接口不可用") }
+        guard let api = dockAPI else { throw RemoteModeError.unavailable(String(localized: "当前系统的 Dock 控制接口不可用")) }
         let hidden = api.getHidden()
         let size = Double(api.getSize())
         guard hidden <= 1, size.isFinite, (0...1).contains(size) else {
-            throw RemoteModeError.unavailable("无法读取 Dock 原设置，未做修改")
+            throw RemoteModeError.unavailable(String(localized: "无法读取 Dock 原设置，未做修改"))
         }
         return (hidden == 1, size)
     }
 
     private static func setDock(autohide: Bool?, size: Double?) async throws {
-        guard let api = dockAPI else { throw RemoteModeError.unavailable("当前系统的 Dock 控制接口不可用") }
+        guard let api = dockAPI else { throw RemoteModeError.unavailable(String(localized: "当前系统的 Dock 控制接口不可用")) }
         _ = try await readDock()
         if let size, !size.isFinite || !(0...1).contains(size) {
-            throw RemoteModeError.unavailable("Dock 大小无效")
+            throw RemoteModeError.unavailable(String(localized: "Dock 大小无效"))
         }
         if let autohide { api.setHidden(autohide ? 1 : 0) }
         if let size { api.setSize(Float(size)) }
@@ -203,16 +204,16 @@ final class RemoteDesktopService: RemoteModeEnvironment {
                (size == nil || RemoteModeConfiguration.dockSizeMatches(actual: actual.size, requested: size ?? actual.size)) { return }
             try await Task.sleep(for: .milliseconds(100))
         }
-        throw RemoteModeError.unavailable("系统未应用 Dock 设置，已保留恢复记录")
+        throw RemoteModeError.unavailable(String(localized: "系统未应用 Dock 设置，已保留恢复记录"))
     }
 
     private static func readStageManager() throws -> Bool? {
         guard CFPreferencesSynchronize(stageDomain, kCFPreferencesCurrentUser, kCFPreferencesAnyHost) else {
-            throw RemoteModeError.unavailable("无法读取台前调度设置")
+            throw RemoteModeError.unavailable(String(localized: "无法读取台前调度设置"))
         }
         guard let raw = CFPreferencesCopyValue(stageKey, stageDomain, kCFPreferencesCurrentUser, kCFPreferencesAnyHost) else { return nil }
         guard CFGetTypeID(raw) == CFBooleanGetTypeID(), let value = raw as? Bool else {
-            throw RemoteModeError.unavailable("台前调度设置格式不受支持")
+            throw RemoteModeError.unavailable(String(localized: "台前调度设置格式不受支持"))
         }
         return value
     }
@@ -222,7 +223,7 @@ final class RemoteDesktopService: RemoteModeEnvironment {
                               kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
         guard CFPreferencesSynchronize(stageDomain, kCFPreferencesCurrentUser, kCFPreferencesAnyHost),
               try readStageManager() == enabled else {
-            throw RemoteModeError.unavailable("系统未保存台前调度设置")
+            throw RemoteModeError.unavailable(String(localized: "系统未保存台前调度设置"))
         }
     }
 }

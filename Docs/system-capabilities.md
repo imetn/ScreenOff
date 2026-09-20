@@ -147,7 +147,8 @@ compatibility checks, particularly for the undocumented Dock and Stage Manager a
 - The lid-wake daemon is the only privileged component. It does one thing—write `SleepDisabled`—accepts
   connections only from this app's code signature, and restores the default when its last client
   disconnects, when launchd stops it, and when the power is unplugged. No other helper, no arbitrary
-  shell commands.
+  shell commands. It also produces no user-facing text: it replies with the raw `IOReturn` and the app
+  turns that code into a localized message, because the daemon bundle carries no localized resources.
 - The input lock must never outlive the process: it exists only as a live event tap, is released on
   quit, and is re-enabled immediately whenever the system disables it.
 - While input is locked, the unlock gesture stays on screen by default. The hint can be switched off in

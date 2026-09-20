@@ -23,6 +23,10 @@ enum SystemPowerSetting {
         return unsafeBitCast(symbol, to: SetFn.self)
     }()
 
+    /// `kIOReturnUnsupported`，解析不到写入符号时代表「这台机器没有这个能力」。
+    static let unsupportedCode = Int32(bitPattern: 0xE00002C7)
+    private static let notPrivilegedCode = Int32(bitPattern: 0xE00002C1)
+
     static var canRead: Bool { copyFunction != nil }
     static var canWrite: Bool { setFunction != nil }
 
@@ -40,15 +44,16 @@ enum SystemPowerSetting {
     /// 写入需要 root：非特权进程会拿到 `kIOReturnNotPrivileged`。返回原始 IOReturn 便于记录。
     @discardableResult
     static func setSleepDisabled(_ disabled: Bool) -> Int32 {
-        guard let setFunction else { return Int32(bitPattern: 0xE00002C7) }  // kIOReturnUnsupported
+        guard let setFunction else { return unsupportedCode }
         return setFunction(sleepDisabledKey as CFString, disabled ? kCFBooleanTrue : kCFBooleanFalse)
     }
 
+    /// 只在 App 进程里调用。helper 没有本地化资源，它只回传原始 IOReturn。
     static func describe(_ code: Int32) -> String {
-        switch UInt32(bitPattern: code) {
-        case 0: "成功"
-        case 0xE00002C1: "需要管理员权限"
-        case 0xE00002C7: "系统不支持该设置"
+        switch code {
+        case 0: String(localized: "成功")
+        case notPrivilegedCode: String(localized: "需要管理员权限")
+        case unsupportedCode: String(localized: "系统不支持该设置")
         default: String(format: "IOReturn 0x%08X", UInt32(bitPattern: code))
         }
     }

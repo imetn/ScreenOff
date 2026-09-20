@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		002317259F999FEFE45CE995 /* PhysicalInputMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAE1CC9288E53906BEC8FD3 /* PhysicalInputMonitor.swift */; };
+		0E0CC0AEA96066E4C97D51C0 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 91133AA8105A5A1B69C46CFC /* Localizable.strings */; };
 		0E5DF8F47E9CF8F9A50D30A3 /* ScreenOffShortcutServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA3783566917565597D454D4 /* ScreenOffShortcutServiceTests.swift */; };
 		0EC453E37044EBE4B861F50E /* IdleDelayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF12F8FD26CB8037E66710F /* IdleDelayTests.swift */; };
 		1012443F42760C6B0843456C /* InputLockOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30C50906533F1223345E3CBF /* InputLockOverlay.swift */; };
@@ -23,6 +24,7 @@
 		3A7D720845AA6BF1D6FFD69C /* RemoteModeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861A40D41512131288FA6A59 /* RemoteModeButton.swift */; };
 		415764B38DB7B46DE9D98E35 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A505CCB8E8066E390AF91561 /* Assets.xcassets */; };
 		47D7A87D124D5C980F880ABE /* SettingsWindowSizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3C54DD29C5BEA94E1FFAE2 /* SettingsWindowSizing.swift */; };
+		4C9943E510E960B8A29EF484 /* AppLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25AF29C2A62DB7494A32F2BE /* AppLanguage.swift */; };
 		4F4156E1938FE1C0AC6F6F26 /* InputLockService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BA94F1A77D447ABD051773 /* InputLockService.swift */; };
 		5290A72E2228A07A5FAA3BAF /* LidWakeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43572DEF8F4C01AA51E72DB0 /* LidWakeService.swift */; };
 		52C945720B752158DA56674E /* ScreenOffLidHelper in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = 77ACC5499637CD5CFA5B8AE7 /* ScreenOffLidHelper */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -105,6 +107,7 @@
 		23AE7EF23F21B0DAFFEC3CB1 /* UpdateSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateSource.swift; sourceTree = "<group>"; };
 		247FBD35D3C2EF0980A83EA4 /* ScreenOffPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOffPreferences.swift; sourceTree = "<group>"; };
 		24FEB271DC5E2A82CC37FC86 /* RemoteModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteModeTests.swift; sourceTree = "<group>"; };
+		25AF29C2A62DB7494A32F2BE /* AppLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLanguage.swift; sourceTree = "<group>"; };
 		30C50906533F1223345E3CBF /* InputLockOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputLockOverlay.swift; sourceTree = "<group>"; };
 		370D164962FF742CDAFEA2F7 /* PowerSourceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerSourceMonitor.swift; sourceTree = "<group>"; };
 		3EAE1CC9288E53906BEC8FD3 /* PhysicalInputMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalInputMonitor.swift; sourceTree = "<group>"; };
@@ -113,6 +116,7 @@
 		4AE69FFE3D733E74DDDDDE55 /* com.frameflowtech.screenoff.lidhelper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = com.frameflowtech.screenoff.lidhelper.plist; sourceTree = "<group>"; };
 		4C17336C982BBF6CC27D888F /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		55C6DBDFA32E6792FEC56DA2 /* ScreenOffController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOffController.swift; sourceTree = "<group>"; };
+		5A1AD9CDBB3691BA07ECAC93 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		5B8A51B9601F88736A05E088 /* SettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCard.swift; sourceTree = "<group>"; };
 		5EEB6C1DBEB94FCC22BDD337 /* ThirdPartyNotices.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = ThirdPartyNotices.txt; sourceTree = "<group>"; };
 		61A2C46632CB743D0BE2DA51 /* IdleDelay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleDelay.swift; sourceTree = "<group>"; };
@@ -134,7 +138,9 @@
 		A505CCB8E8066E390AF91561 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AB1C2E6B5BEA241CABC9DBB7 /* RemoteDesktopService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteDesktopService.swift; sourceTree = "<group>"; };
 		AB85DA8B182EB057E315F222 /* ScreenOff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScreenOff.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B5C79D70492FFF81A4A7A789 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		C78C37597D360C52017B246C /* ScreenOffTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScreenOffTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D21C784FD40C9BAD41F5C497 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		DA082031FE0479FD3D7316DB /* PowerAssertionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerAssertionService.swift; sourceTree = "<group>"; };
 		DA3783566917565597D454D4 /* ScreenOffShortcutServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOffShortcutServiceTests.swift; sourceTree = "<group>"; };
 		DFDEC1EEA7AB6F76D3924427 /* SystemPowerSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemPowerSetting.swift; sourceTree = "<group>"; };
@@ -243,6 +249,7 @@
 		567ACC2A6097A1A619080853 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				25AF29C2A62DB7494A32F2BE /* AppLanguage.swift */,
 				61A2C46632CB743D0BE2DA51 /* IdleDelay.swift */,
 				011EC6AEB14873E43F29753C /* RemoteMode.swift */,
 				55C6DBDFA32E6792FEC56DA2 /* ScreenOffController.swift */,
@@ -299,6 +306,7 @@
 				A505CCB8E8066E390AF91561 /* Assets.xcassets */,
 				EB209433AD02F2C8234E66BF /* Info.plist */,
 				5EEB6C1DBEB94FCC22BDD337 /* ThirdPartyNotices.txt */,
+				91133AA8105A5A1B69C46CFC /* Localizable.strings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -379,11 +387,13 @@
 				};
 			};
 			buildConfigurationList = 9154FB3C929CCDBF634A167E /* Build configuration list for PBXProject "ScreenOff" */;
-			developmentRegion = en;
+			developmentRegion = "zh-Hans";
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
 				en,
+				ja,
+				"zh-Hans",
 			);
 			mainGroup = 06C7348095B8EDC73A9AFD47;
 			minimizedProjectReferenceProxies = 1;
@@ -410,6 +420,7 @@
 			files = (
 				1726F51E67704A385FD402EF /* AppIcon.icon in Resources */,
 				415764B38DB7B46DE9D98E35 /* Assets.xcassets in Resources */,
+				0E0CC0AEA96066E4C97D51C0 /* Localizable.strings in Resources */,
 				A037E706E8DB14C51B9DF093 /* ThirdPartyNotices.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -432,6 +443,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4C9943E510E960B8A29EF484 /* AppLanguage.swift in Sources */,
 				B4108E1B0748966D74D822C4 /* AppLog.swift in Sources */,
 				743CF09CF072D1A3CD56BBEE /* AppPresentationController.swift in Sources */,
 				89CEA7BEC0486D54F2E6CC6B /* DisplayBrightnessService.swift in Sources */,
@@ -491,6 +503,19 @@
 			targetProxy = 5789AC70A85FBD004DB52EBF /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		91133AA8105A5A1B69C46CFC /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				5A1AD9CDBB3691BA07ECAC93 /* en */,
+				D21C784FD40C9BAD41F5C497 /* ja */,
+				B5C79D70492FFF81A4A7A789 /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		05D0DDB6840D7B94F7E5241D /* Debug */ = {

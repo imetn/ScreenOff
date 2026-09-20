@@ -70,16 +70,16 @@ final class ScreenOffShortcutService {
         excluding other: KeyboardShortcuts.Shortcut? = nil
     ) -> KeyboardShortcuts.ValidationResult {
         guard isSupported(shortcut) else {
-            return .disallow(reason: "不支持单个按键，请搭配 ⌘、⌃ 或 ⌥。")
+            return .disallow(reason: String(localized: "不支持单个按键，请搭配 ⌘、⌃ 或 ⌥。"))
         }
         guard shortcut != other else {
-            return .disallow(reason: "这个快捷键已用于另一个操作，请换一组。")
+            return .disallow(reason: String(localized: "这个快捷键已用于另一个操作，请换一组。"))
         }
         if let menu = NSApp?.mainMenu, let title = conflictingMenuTitle(for: shortcut, in: menu) {
-            return .disallow(reason: "与「\(title)」冲突，请换一组。")
+            return .disallow(reason: String(localized: "与「\(title)」冲突，请换一组。"))
         }
         if shortcut.isTakenBySystem {
-            return .disallow(reason: "这个组合键已被系统使用，请换一组。")
+            return .disallow(reason: String(localized: "这个组合键已被系统使用，请换一组。"))
         }
         guard shortcut != current else { return .allow }
         var reference: EventHotKeyRef?
@@ -93,7 +93,7 @@ final class ScreenOffShortcutService {
         )
         if let reference { UnregisterEventHotKey(reference) }
         guard result == noErr else {
-            return .disallow(reason: "这个快捷键已被占用或无法注册，请换一组。")
+            return .disallow(reason: String(localized: "这个快捷键已被占用或无法注册，请换一组。"))
         }
         return .allow
     }

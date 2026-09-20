@@ -12,12 +12,20 @@ enum IdleDelay {
 
     static var maximumIndex: Int { options.count - 1 }
 
+    /// 数字一律先转成字符串再插值：整数插值生成的键是 `%lld 分钟`，
+    /// 与字符串表里的 `%@ 分钟` 对不上，查不到就会原样显示中文。
     static func title(_ seconds: Int) -> String {
-        if seconds < 3600 { return "\(seconds / 60) 分钟" }
+        if seconds < 3600 {
+            let minutes = String(seconds / 60)
+            return String(localized: "\(minutes) 分钟")
+        }
         let hours = Double(seconds) / 3600
-        return hours == hours.rounded()
-            ? "\(Int(hours)) 小时"
-            : String(format: "%.1f 小时", hours)
+        if hours == hours.rounded() {
+            let whole = String(Int(hours))
+            return String(localized: "\(whole) 小时")
+        }
+        let decimal = String(format: "%.1f", hours)
+        return String(localized: "\(decimal) 小时")
     }
 
     /// 找不到精确档位时回落到默认值，避免旧偏好（含已下线的秒级档位）带来越界。

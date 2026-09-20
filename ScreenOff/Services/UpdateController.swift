@@ -19,7 +19,7 @@ final class UpdateController: NSObject, SPUUpdaterDelegate {
     private static let logger = Logger(subsystem: "com.frameflowtech.screenoff", category: "Updates")
 
     private(set) var isConfigured = false
-    private(set) var configurationMessage = "更新服务配置不完整"
+    private(set) var configurationMessage = String(localized: "更新服务配置不完整")
 
     init(bundle: Bundle = .main) {
         super.init()
@@ -44,9 +44,9 @@ final class UpdateController: NSObject, SPUUpdaterDelegate {
         do {
             try updater.start()
             isConfigured = true
-            configurationMessage = "自动选择可用更新源，通过 Sparkle 安全安装更新"
+            configurationMessage = String(localized: "自动选择可用更新源，通过 Sparkle 安全安装更新")
         } catch {
-            configurationMessage = "更新服务启动失败：\(error.localizedDescription)"
+            configurationMessage = String(localized: "更新服务启动失败：\(error.localizedDescription)")
         }
     }
 
@@ -115,8 +115,8 @@ final class UpdateController: NSObject, SPUUpdaterDelegate {
                 if check == .updates {
                     userDriver?.showUpdaterError(NSError(domain: NSURLErrorDomain,
                         code: URLError.cannotConnectToHost.rawValue,
-                        userInfo: [NSLocalizedDescriptionKey: "暂时无法连接更新服务",
-                                   NSLocalizedRecoverySuggestionErrorKey: "两个更新源均未通过连接与签名检查，请稍后重试。"]),
+                        userInfo: [NSLocalizedDescriptionKey: String(localized: "暂时无法连接更新服务"),
+                                   NSLocalizedRecoverySuggestionErrorKey: String(localized: "两个更新源均未通过连接与签名检查，请稍后重试。")]),
                         acknowledgement: {})
                 }
                 return

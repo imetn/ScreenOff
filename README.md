@@ -18,6 +18,7 @@ Screen Off is made for vibe coding and remote Mac setups. It turns off the built
 - Restore the previous display and keyboard brightness when local input returns.
 - Lock the local keyboard and trackpad and dim the screen with them; unlock by holding Fn + Delete for one second.
 - Optionally keep the Mac awake with the lid closed while it is on AC power.
+- Available in English, 简体中文 and 日本語, switchable in Settings.
 
 ## Download
 

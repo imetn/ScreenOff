@@ -16,21 +16,21 @@ final class LidWakeHelperService: NSObject, LidWakeHelperProtocol, @unchecked Se
 
     // MARK: - XPC
 
-    func setSleepDisabled(_ disabled: Bool, reply: @escaping @Sendable (Bool, String?) -> Void) {
+    func setSleepDisabled(_ disabled: Bool, reply: @escaping @Sendable (Bool, Int32) -> Void) {
         queue.async { [self] in
             guard SystemPowerSetting.canWrite else {
-                reply(false, "当前系统不支持写入睡眠设置")
+                reply(false, SystemPowerSetting.unsupportedCode)
                 return
             }
             let code = SystemPowerSetting.setSleepDisabled(disabled)
             guard code == 0 else {
                 log.error("写入 SleepDisabled=\(disabled) 失败 code=\(code)")
-                reply(false, SystemPowerSetting.describe(code))
+                reply(false, code)
                 return
             }
             didDisableSleep = disabled
             log.notice("SleepDisabled=\(disabled)")
-            reply(true, nil)
+            reply(true, 0)
         }
     }
 

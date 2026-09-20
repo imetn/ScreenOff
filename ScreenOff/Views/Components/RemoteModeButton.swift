@@ -24,8 +24,8 @@ struct RemoteModeButton: View {
     }
 
     private var title: String {
-        if controller.remoteMode.isBusy { return "正在切换…" }
-        if controller.remoteMode.needsRecovery { return "重试恢复原设置" }
-        return controller.remoteMode.isActive ? "关闭并恢复" : "开启远程模式"
+        if controller.remoteMode.isBusy { return String(localized: "正在切换…") }
+        if controller.remoteMode.needsRecovery { return String(localized: "重试恢复原设置") }
+        return controller.remoteMode.isActive ? String(localized: "关闭并恢复") : String(localized: "开启远程模式")
     }
 }
