@@ -467,7 +467,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("开源")
                             .font(.headline)
-                        Text(updateController.githubURL == nil ? "GitHub 仓库尚未发布" : "以 MIT 协议开源，代码公开可查，也欢迎在 GitHub 反馈问题。")
+                        Text(updateController.githubURL == nil ? "GitHub 仓库尚未发布" : "欢迎在 GitHub 共建或反馈问题")
                             .foregroundStyle(.secondary)
                     }
                 }
