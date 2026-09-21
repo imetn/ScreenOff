@@ -115,6 +115,19 @@ read the current interface language to find their own. Switching writes the `App
 default and takes effect on restart; `AppLanguage.restart()` relaunches through the normal quit path so
 brightness, input lock and lid settings are restored first.
 
+## README Screenshots
+
+`Docs/assets/readme/menu-bar-{light,dark}.png` are the two menu-bar shots both READMEs share, one per
+appearance. Capture the popover at @2x with the wallpaper still showing through its rounded corners,
+then mask it: 30 px corner radius, 37 px of padding on every side, and a drop shadow of 14 px blur
+offset 7 px downward at 28 % black, which is what the earlier assets used.
+
+The radius is measured, not guessed. Scan the diagonal inward from the top-left corner: the wallpaper
+runs to about d = 8, where the window's own one-pixel border sits, and the translucent body starts at
+d = 10. With the corner's nearest point at R(√2 − 1) from the origin, that puts R at roughly 30 px.
+Check the output by confirming no wallpaper survives in any corner — too small a radius leaves a
+visible arc of it, which is the failure this measurement exists to avoid.
+
 ## Settings Layout Verification
 
 The four native toolbar tabs are ordered Remote, Feature, General, About: remote work is the main
