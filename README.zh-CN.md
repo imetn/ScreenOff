@@ -1,12 +1,12 @@
-<h1 align="center"><img src="Docs/assets/readme/app-icon-final-1024.png" alt="Screen Off" width="52" align="center"> Screen Off</h1>
+<h1 align="center" style="text-align: center"><img src="Docs/assets/readme/app-icon-final-1024.png" alt="Screen Off" width="52" align="center" style="vertical-align: middle"> Screen Off</h1>
 
-<p align="center"><a href="README.md">English</a> · 简体中文</p>
+<p align="center" style="text-align: center"><a href="README.md">English</a> · 简体中文</p>
 
-<p align="center"><strong>Mac 保持唤醒，屏幕无需常亮。</strong></p>
+<p align="center" style="text-align: center"><strong>Mac 保持唤醒，屏幕无需常亮。</strong></p>
 
 Screen Off 为 Vibe Coding 和远程控制场景准备。MacBook 空闲后，它会关闭内建屏幕和键盘背光，同时保持 Mac 在线。授权「输入监控」后，远程操作不会点亮本机屏幕；碰一下键盘或触控板，就会恢复原来的亮度。
 
-<p align="center">
+<p align="center" style="text-align: center">
   <img src="Docs/assets/readme/menu-bar-light.png" alt="Screen Off 菜单栏浅色模式" width="46%">
   <img src="Docs/assets/readme/menu-bar-dark.png" alt="Screen Off 菜单栏深色模式" width="46%">
 </p>

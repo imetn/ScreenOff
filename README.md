@@ -1,12 +1,12 @@
-<h1 align="center"><img src="Docs/assets/readme/app-icon-final-1024.png" alt="Screen Off" width="52" align="center"> Screen Off</h1>
+<h1 align="center" style="text-align: center"><img src="Docs/assets/readme/app-icon-final-1024.png" alt="Screen Off" width="52" align="center" style="vertical-align: middle"> Screen Off</h1>
 
-<p align="center">English · <a href="README.zh-CN.md">简体中文</a></p>
+<p align="center" style="text-align: center">English · <a href="README.zh-CN.md">简体中文</a></p>
 
-<p align="center"><strong>Keep your Mac awake with the screen off.</strong></p>
+<p align="center" style="text-align: center"><strong>Keep your Mac awake with the screen off.</strong></p>
 
 Screen Off is made for vibe coding and remote Mac setups. It turns off the built-in display and keyboard backlight when the MacBook is idle, while keeping the Mac online. With Input Monitoring allowed, remote control does not light the local display; touch the Mac's keyboard or trackpad to restore the previous brightness.
 
-<p align="center">
+<p align="center" style="text-align: center">
   <img src="Docs/assets/readme/menu-bar-light.png" alt="Screen Off menu bar in light mode" width="46%">
   <img src="Docs/assets/readme/menu-bar-dark.png" alt="Screen Off menu bar in dark mode" width="46%">
 </p>
