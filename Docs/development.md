@@ -119,14 +119,17 @@ brightness, input lock and lid settings are restored first.
 
 `Docs/assets/readme/menu-bar-{light,dark}.png` are the two menu-bar shots both READMEs share, one per
 appearance. Capture the popover at @2x with the wallpaper still showing through its rounded corners,
-then mask it: 30 px corner radius, 37 px of padding on every side, and a drop shadow of 14 px blur
+then mask it: 34 px corner radius, 37 px of padding on every side, and a drop shadow of 14 px blur
 offset 7 px downward at 28 % black, which is what the earlier assets used.
 
-The radius is measured, not guessed. Scan the diagonal inward from the top-left corner: the wallpaper
-runs to about d = 8, where the window's own one-pixel border sits, and the translucent body starts at
-d = 10. With the corner's nearest point at R(√2 − 1) from the origin, that puts R at roughly 30 px.
-Check the output by confirming no wallpaper survives in any corner — too small a radius leaves a
-visible arc of it, which is the failure this measurement exists to avoid.
+The radius is measured, not guessed. Scan the diagonal inward from the top-left corner: plain
+wallpaper runs to about d = 7, the window's own shadow darkens it around d = 8, and the translucent
+body begins at d = 10. Cut at the body rather than at the shadow. The corner's nearest point lies at
+R(√2 − 1) from the origin, so landing the cut on d = 10 needs R ≈ 34.
+
+Masking at the shadow instead — R = 30 here — looks right at full size but leaves a dark arc outside
+each corner, and that arc is obvious once the image sits on a white README. Check every corner at
+several times magnification over a contrasting background before committing the assets.
 
 ## Settings Layout Verification
 
