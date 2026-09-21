@@ -119,17 +119,26 @@ brightness, input lock and lid settings are restored first.
 
 `Docs/assets/readme/menu-bar-{light,dark}.png` are the two menu-bar shots both READMEs share, one per
 appearance. Capture the popover at @2x with the wallpaper still showing through its rounded corners,
-then mask it: 34 px corner radius, 37 px of padding on every side, and a drop shadow of 14 px blur
-offset 7 px downward at 28 % black, which is what the earlier assets used.
+then mask it: a **continuous** corner curve of radius 34 px, 37 px of padding on every side, and a
+drop shadow of 14 px blur offset 7 px downward at 28 % black.
 
-The radius is measured, not guessed. Scan the diagonal inward from the top-left corner: plain
-wallpaper runs to about d = 7, the window's own shadow darkens it around d = 8, and the translucent
-body begins at d = 10. Cut at the body rather than at the shadow. The corner's nearest point lies at
-R(√2 − 1) from the origin, so landing the cut on d = 10 needs R ≈ 34.
+The corner curve matters more than the radius. macOS draws window corners as squircles, so a plain
+circular arc cannot be fitted to them at any radius: too small and the corner tip plus the point
+where the arc meets the straight edge both leak wallpaper, too large and the middle of the arc eats
+into the window. Use `CALayer` with `cornerCurve = .continuous` rather than
+`CGPath(roundedRect:cornerWidth:cornerHeight:)`.
 
-Masking at the shadow instead — R = 30 here — looks right at full size but leaves a dark arc outside
-each corner, and that arc is obvious once the image sits on a white README. Check every corner at
-several times magnification over a contrasting background before committing the assets.
+Fit the radius by measuring instead of by eye. For each column x near the top-left corner, find the
+first row that is unmistakably window body (on the light shot, luminance above 170 — plain wallpaper
+sits near 128 and the window's own shadow darkens it to about 108). Render each candidate mask on its
+own and read its curve the same way, then compare column by column: a mask shallower than the measured
+boundary in any column leaks, and one much deeper than it everywhere is cutting into the window.
+
+Measured against that boundary, a circular arc of 34 px leaks in three columns — x = 0 and x = 32–33,
+exactly the corner tip and the tangent point — while the continuous curve of the same radius leaks in
+none and never overcuts by more than 2 px. Verify every corner at several times magnification over a
+contrasting background before committing the assets; at full size the leak is invisible, and on a
+white README it is not.
 
 ## Settings Layout Verification
 
